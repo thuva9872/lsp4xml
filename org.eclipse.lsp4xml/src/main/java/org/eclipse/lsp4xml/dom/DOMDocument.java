@@ -27,14 +27,7 @@ import org.eclipse.lsp4xml.uriresolver.URIResolverExtensionManager;
 import org.eclipse.lsp4xml.utils.DOMUtils;
 import org.eclipse.lsp4xml.utils.StringUtils;
 import org.eclipse.lsp4xml.utils.XMLPositionUtility;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.DOMConfiguration;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.EntityReference;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 /**
  * XML document.
@@ -62,6 +55,7 @@ public class DOMDocument extends DOMNode implements Document {
 	}
 
 	public List<DOMNode> getRoots() {
+
 		return super.getChildren();
 	}
 
@@ -571,6 +565,7 @@ public class DOMDocument extends DOMNode implements Document {
 	 */
 	@Override
 	public DOMText createTextNode(String data) {
+
 		throw new UnsupportedOperationException();
 	}
 
@@ -604,6 +599,14 @@ public class DOMDocument extends DOMNode implements Document {
 		throw new UnsupportedOperationException();
 	}
 
+	public NodeList getElementsByTagName(String tagname, Node node) {
+
+		Document ownerDocument = node.getOwnerDocument();
+		NodeList children = ownerDocument.getChildNodes();
+
+
+		throw new UnsupportedOperationException();
+	}
 	/*
 	 * (non-Javadoc)
 	 * 

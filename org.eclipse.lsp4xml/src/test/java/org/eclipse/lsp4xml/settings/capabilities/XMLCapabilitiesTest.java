@@ -67,7 +67,7 @@ public class XMLCapabilitiesTest {
 		textDocumentService.setSharedFormattingSettings(formattingOptions);
 
 		textDocument = new TextDocumentClientCapabilities();
-		manager = new XMLCapabilityManager(languageClient, textDocumentService);
+		manager = new XMLCapabilityManager(languageClient, textDocumentService, null);
 		clientCapabilities = new ClientCapabilities();
 		capabilityIDs = null;
 

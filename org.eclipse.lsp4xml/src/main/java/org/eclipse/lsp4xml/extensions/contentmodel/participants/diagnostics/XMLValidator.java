@@ -28,10 +28,14 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
+import org.eclipse.lsp4xml.commons.TextDocument;
+import org.eclipse.lsp4xml.dom.DOMAttr;
 import org.eclipse.lsp4xml.dom.DOMDocument;
 import org.eclipse.lsp4xml.dom.DOMElement;
+import org.eclipse.lsp4xml.dom.DOMParser;
 import org.eclipse.lsp4xml.extensions.contentmodel.settings.ContentModelSettings;
 import org.eclipse.lsp4xml.extensions.contentmodel.settings.XMLValidationSettings;
+import org.eclipse.lsp4xml.services.XMLLanguageService;
 import org.eclipse.lsp4xml.services.extensions.diagnostics.LSPContentHandler;
 import org.eclipse.lsp4xml.uriresolver.CacheResourceDownloadingException;
 import org.eclipse.lsp4xml.uriresolver.IExternalSchemaLocationProvider;
@@ -40,6 +44,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 /**
  * XML validator utilities class.
@@ -64,7 +74,7 @@ public class XMLValidator {
 			// Add LSP error reporter to fill LSP diagnostics from Xerces errors
 			reader.setProperty("http://apache.org/xml/properties/internal/error-reporter",
 					new LSPErrorReporterForXML(document, diagnostics));
-			reader.setFeature("http://apache.org/xml/features/continue-after-fatal-error", false); //$NON-NLS-1$
+//			reader.setFeature("http://apache.org/xml/features/continue-after-fatal-error", false); //$NON-NLS-1$
 			reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true /* document.hasNamespaces() */); //$NON-NLS-1$
 			reader.setFeature("http://xml.org/sax/features/namespaces", true /* document.hasNamespaces() */); //$NON-NLS-1$
 
@@ -76,12 +86,13 @@ public class XMLValidator {
 			}
 
 			boolean hasGrammar = document.hasGrammar();
-			
+
+			//TODO: revisit this
+//			hasGrammar = true;
+
 			// If diagnostics for Schema preference is enabled
 			XMLValidationSettings validationSettings = contentModelSettings != null ? contentModelSettings.getValidation() : null;
 			if((validationSettings == null) || validationSettings.isSchema()) {
-
-				
 
 				checkExternalSchema(document.getExternalSchemaLocation(), reader);
 
@@ -97,6 +108,7 @@ public class XMLValidator {
 
 			// Parse XML
 			String content = document.getText();
+
 			String uri = document.getDocumentURI();
 			InputSource inputSource = new InputSource();
 			inputSource.setByteStream(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));

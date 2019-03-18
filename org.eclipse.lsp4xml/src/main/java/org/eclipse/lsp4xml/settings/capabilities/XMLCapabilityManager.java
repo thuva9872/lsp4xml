@@ -10,29 +10,6 @@
  */
 package org.eclipse.lsp4xml.settings.capabilities;
 
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.CODE_ACTION_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.COMPLETION_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_LINK_OPTIONS;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.DEFINITION_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_HIGHLIGHT_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_SYMBOL_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.FOLDING_RANGE_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.FORMATTING_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.FORMATTING_RANGE_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.LINK_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.RENAME_ID;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_ACTION;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DEFINITION;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_SYMBOL;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_FOLDING_RANGE;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HIGHLIGHT;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_LINK;
-import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RENAME;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,7 +21,10 @@ import org.eclipse.lsp4j.Unregistration;
 import org.eclipse.lsp4j.UnregistrationParams;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4xml.XMLTextDocumentService;
+import org.eclipse.lsp4xml.XMLWorkspaceService;
 import org.eclipse.lsp4xml.settings.XMLFormattingOptions;
+
+import static org.eclipse.lsp4xml.settings.capabilities.ServerCapabilitiesConstants.*;
 
 /**
  * Manager for capability related tasks
@@ -59,10 +39,12 @@ public class XMLCapabilityManager {
 	private Set<String> registeredCapabilities = new HashSet<>(3);
 	private LanguageClient languageClient;
 	private XMLTextDocumentService textDocumentService;
+	private XMLWorkspaceService xmlWorkspaceService;
 
-	public XMLCapabilityManager(LanguageClient languageClient, XMLTextDocumentService textDocumentService) {
+	public XMLCapabilityManager(LanguageClient languageClient, XMLTextDocumentService textDocumentService, XMLWorkspaceService xmlWorkspaceService) {
 		this.languageClient = languageClient;
 		this.textDocumentService = textDocumentService;
+		this.xmlWorkspaceService = xmlWorkspaceService;
 	}
 
 	/**
@@ -142,6 +124,9 @@ public class XMLCapabilityManager {
 		}
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
 			registerCapability(DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
+		}
+		if (this.getClientCapabilities().isDidChangeWorkspaceFoldersSupported()) {
+			registerCapability(WORKSPACE_CHANGE_FOLDERS_ID, WORKSPACE_CHANGE_FOLDERS);
 		}
 		syncDynamicCapabilitiesWithPreferences();
 	}

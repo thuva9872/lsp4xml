@@ -34,7 +34,7 @@ public class WebPlugin implements IXMLExtension {
 
 	@Override
 	public void doSave(ISaveContext context) {
-		
+
 	}
 
 	@Override
@@ -42,8 +42,9 @@ public class WebPlugin implements IXMLExtension {
 		try {
 			XMLReferencesManager.getInstance() //
 					.referencesFor(WebPlugin::match) //
-					.from("//*:servlet-mapping/*:servlet-name/*/*") //
+					.from("//*:definitions/*:servlet-name/*/*") //
 					.to("//*[local-name()='servlet']/*[local-name() ='servlet-name']/text()");
+
 		} catch (XPathExpressionException e) {
 			LOGGER.log(Level.SEVERE, "Error while registering XML references for web.xml", e);
 		}

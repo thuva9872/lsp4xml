@@ -14,6 +14,7 @@ package org.eclipse.lsp4xml.settings.capabilities;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.DynamicRegistrationCapabilities;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
+import org.eclipse.lsp4j.WorkspaceClientCapabilities;
 
 /**
  * Determines if a client supports a specific capability dynamically
@@ -93,8 +94,15 @@ public class ClientCapabilitiesWrapper {
 				&& capability.getDynamicRegistration().booleanValue();
 	}
 
+	public boolean isDidChangeWorkspaceFoldersSupported() {
+		return v3Supported && getWorkspace().getWorkspaceFolders();
+	}
 	public TextDocumentClientCapabilities getTextDocument() {
 		return this.capabilities.getTextDocument();
+	}
+
+	public WorkspaceClientCapabilities getWorkspace() {
+		return this.capabilities.getWorkspace();
 	}
 
 }

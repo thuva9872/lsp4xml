@@ -116,7 +116,7 @@ public class CMXSDDocument implements CMDocument {
 		return declaration;
 	}
 
-	private CMElementDeclaration findElementDeclaration(String tag, String namespace) {
+	public CMElementDeclaration findElementDeclaration(String tag, String namespace) {
 		for (CMElementDeclaration cmElement : getElements()) {
 			if (cmElement.getName().equals(tag)) {
 				return cmElement;

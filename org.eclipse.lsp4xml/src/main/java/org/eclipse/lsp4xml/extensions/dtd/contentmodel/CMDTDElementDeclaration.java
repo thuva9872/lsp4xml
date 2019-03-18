@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.xerces.impl.dtd.XMLElementDecl;
+import org.apache.xerces.xs.XSElementDeclaration;
 import org.eclipse.lsp4xml.extensions.contentmodel.model.CMAttributeDeclaration;
 import org.eclipse.lsp4xml.extensions.contentmodel.model.CMElementDeclaration;
 
@@ -32,6 +33,11 @@ public class CMDTDElementDeclaration extends XMLElementDecl implements CMElement
 	public CMDTDElementDeclaration(CMDTDDocument document, int index) {
 		this.document = document;
 		this.index = index;
+	}
+
+	@Override
+	public XSElementDeclaration getElementDeclaration() {
+		return null;
 	}
 
 	@Override

@@ -113,10 +113,11 @@ public class XMLLanguageService extends XMLExtensionsRegistry {
 	}
 
 	public CompletableFuture<Path> publishDiagnostics(DOMDocument xmlDocument,
-			Consumer<PublishDiagnosticsParams> publishDiagnostics, BiConsumer<String, Integer> triggerValidation,
-			CancelChecker monitor, XMLValidationSettings validationSettings) {
+													  Consumer<PublishDiagnosticsParams> publishDiagnostics, BiConsumer<String, Integer> triggerValidation,
+													  CancelChecker monitor, XMLValidationSettings validationSettings) {
 		String uri = xmlDocument.getDocumentURI();
 		int version = xmlDocument.getTextDocument().getVersion();
+
 		try {
 			List<Diagnostic> diagnostics = this.doDiagnostics(xmlDocument, monitor, validationSettings);
 			monitor.checkCanceled();

@@ -52,6 +52,11 @@ public class CMXSDElementDeclaration implements CMElementDeclaration {
 	}
 
 	@Override
+	public XSElementDeclaration getElementDeclaration() {
+		return elementDeclaration;
+	}
+
+	@Override
 	public String getName() {
 		return elementDeclaration.getName();
 	}
@@ -111,13 +116,13 @@ public class CMXSDElementDeclaration implements CMElementDeclaration {
 			Collection<CMElementDeclaration> elements) {
 		XSTypeDefinition typeDefinition = elementDecl.getTypeDefinition();
 		switch (typeDefinition.getTypeCategory()) {
-		case XSTypeDefinition.SIMPLE_TYPE:
-			// TODO...
-			break;
-		case XSTypeDefinition.COMPLEX_TYPE:
-			collectElementsDeclaration((XSComplexTypeDefinition) typeDefinition, elements);
-			break;
-		}
+			case XSTypeDefinition.SIMPLE_TYPE:
+				// TODO...
+				break;
+			case XSTypeDefinition.COMPLEX_TYPE:
+				collectElementsDeclaration((XSComplexTypeDefinition) typeDefinition, elements);
+				break;
+			}
 	}
 
 	private void collectElementsDeclaration(XSComplexTypeDefinition typeDefinition,

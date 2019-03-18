@@ -18,6 +18,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lsp4xml.utils.SynapseSchemaUtils;
 
 /**
  * Text document extends LSP4j {@link TextDocumentItem} to provide methods to
@@ -168,6 +169,11 @@ public class TextDocument extends TextDocumentItem {
 				setText(last.getText());
 			}
 		}
+		//setting schemaLocation in every change of the document
+		String content = super.getText();
+		content = content.replaceFirst("xmlns=\"http://ws.apache.org/ns/synapse\"", "xmlns='http://ws.apache.org/ns/synapse' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://ws.apache.org/ns/synapse " + SynapseSchemaUtils.schemaLocation + "'");
+		setText(content);
+
 	}
 
 	public boolean isIncremental() {

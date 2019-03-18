@@ -20,6 +20,7 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lsp4xml.utils.SynapseSchemaUtils;
 
 /**
  * A manager for simple text documents
@@ -68,6 +69,12 @@ public class TextDocuments implements ITextDocumentFactory {
 
 	public void onDidOpenTextDocument(DidOpenTextDocumentParams params) {
 		TextDocumentItem document = params.getTextDocument();
+		String text = document.getText();
+
+		//setting schemaLocation in every change of the document
+		text = text.replaceFirst("xmlns=\"http://ws.apache.org/ns/synapse\"", "xmlns='http://ws.apache.org/ns/synapse' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://ws.apache.org/ns/synapse " + SynapseSchemaUtils.schemaLocation + "'");
+
+		document.setText(text);
 		documents.put(document.getUri(), createDocument(document));
 	}
 

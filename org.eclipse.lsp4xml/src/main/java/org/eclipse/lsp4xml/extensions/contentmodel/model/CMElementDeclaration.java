@@ -10,6 +10,8 @@
  */
 package org.eclipse.lsp4xml.extensions.contentmodel.model;
 
+import org.apache.xerces.xs.XSElementDeclaration;
+
 import java.util.Collection;
 
 /**
@@ -17,6 +19,8 @@ import java.util.Collection;
  * grammar (XML Schema, DTD).
  */
 public interface CMElementDeclaration {
+
+	XSElementDeclaration getElementDeclaration();
 
 	/**
 	 * Returns the declared element name.

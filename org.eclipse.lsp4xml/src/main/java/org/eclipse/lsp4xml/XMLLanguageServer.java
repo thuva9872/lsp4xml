@@ -65,6 +65,7 @@ public class XMLLanguageServer
 	private Integer parentProcessId;
 	public XMLCapabilityManager capabilityManager;
 
+
 	public XMLLanguageServer() {
 		xmlLanguageService = new XMLLanguageService();
 		xmlLanguageService.setDocumentProvider(this);
@@ -133,7 +134,7 @@ public class XMLLanguageServer
 			if (newCompletions != null) {
 				xmlTextDocumentService.updateCompletionSettings(newCompletions);
 			}
-		
+
 			// Experimental capabilities
 			XMLExperimentalCapabilities experimental = xmlClientSettings.getExperimental();
 			if (experimental != null) {
@@ -147,7 +148,7 @@ public class XMLLanguageServer
 		if(cmSettings != null) {
 			XMLValidationSettings validationSettings = cmSettings.getValidation();
 			xmlTextDocumentService.getValidationSettings().merge(validationSettings);
-			
+
 		}
 		// Update XML language service extensions
 		xmlTextDocumentService.updateSettings(initializationOptionsSettings);
@@ -181,7 +182,7 @@ public class XMLLanguageServer
 
 	public void setClient(LanguageClient languageClient) {
 		this.languageClient = languageClient;
-		capabilityManager = new XMLCapabilityManager(this.languageClient, xmlTextDocumentService);
+		capabilityManager = new XMLCapabilityManager(this.languageClient, xmlTextDocumentService, xmlWorkspaceService);
 	}
 
 	public LanguageClient getLanguageClient() {

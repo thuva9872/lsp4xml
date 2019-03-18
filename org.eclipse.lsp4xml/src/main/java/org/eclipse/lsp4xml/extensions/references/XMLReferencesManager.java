@@ -42,6 +42,7 @@ public class XMLReferencesManager {
 
 	public void collect(DOMNode node, Consumer<DOMNode> collector) {
 		DOMDocument document = node.getOwnerDocument();
+
 		for (XMLReferences references : referencesCache) {
 			if (references.canApply(document)) {
 				try {
