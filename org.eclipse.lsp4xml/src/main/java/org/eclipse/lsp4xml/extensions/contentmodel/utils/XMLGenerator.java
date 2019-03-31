@@ -14,16 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.xerces.impl.xs.XSComplexTypeDecl;
-import org.apache.xerces.impl.xs.XSElementDecl;
-import org.apache.xerces.impl.xs.XSModelGroupImpl;
-import org.apache.xerces.impl.xs.XSParticleDecl;
-import org.apache.xerces.xs.XSElementDeclaration;
-import org.apache.xerces.xs.XSParticle;
-import org.apache.xerces.xs.XSTerm;
-import org.apache.xerces.xs.XSTypeDefinition;
 import org.eclipse.lsp4xml.commons.SnippetsBuilder;
-import org.eclipse.lsp4xml.extensions.contentmodel.completions.SnippetProvider;
 import org.eclipse.lsp4xml.extensions.contentmodel.model.CMAttributeDeclaration;
 import org.eclipse.lsp4xml.extensions.contentmodel.model.CMElementDeclaration;
 import org.eclipse.lsp4xml.settings.XMLFormattingOptions;
@@ -44,7 +35,7 @@ public class XMLGenerator {
 
 	/**
 	 * XML generator constructor.
-	 * 
+	 *
 	 * @param formattingOptions  the formatting options (uses spaces or tabs for
 	 *                           indentation, etc)
 	 * @param whitespacesIndent  the whitespaces to use to indent XML children
@@ -55,12 +46,12 @@ public class XMLGenerator {
 	 *                           otherwise.
 	 */
 	public XMLGenerator(XMLFormattingOptions formattingOptions, String whitespacesIndent, String lineDelimiter,
-			boolean canSupportSnippets, int maxLevel) {
+						boolean canSupportSnippets, int maxLevel) {
 		this(formattingOptions, true, whitespacesIndent, lineDelimiter, canSupportSnippets, maxLevel);
 	}
 
 	public XMLGenerator(XMLFormattingOptions formattingOptions, boolean autoCloseTags, String whitespacesIndent,
-			String lineDelimiter, boolean canSupportSnippets, int maxLevel) {
+						String lineDelimiter, boolean canSupportSnippets, int maxLevel) {
 		this.formattingOptions = formattingOptions;
 		this.autoCloseTags = autoCloseTags;
 		this.whitespacesIndent = whitespacesIndent;
@@ -68,13 +59,13 @@ public class XMLGenerator {
 		this.canSupportSnippets = canSupportSnippets;
 	}
 
-//	public String generate(CMElementDeclaration elementDeclaration) {
-//		return generate(elementDeclaration, null);
-//	}
+	public String generate(CMElementDeclaration elementDeclaration) {
+		return generate(elementDeclaration, null);
+	}
 
 	/**
 	 * Returns the XML generated from the given element declaration.
-	 * 
+	 *
 	 * @param elementDeclaration
 	 * @param prefix
 	 * @return the XML generated from the given element declaration.
@@ -88,19 +79,8 @@ public class XMLGenerator {
 		return xml.toString();
 	}
 
-	public String generateSnippet(CMElementDeclaration elementDeclaration) {
-
-		String keyword = elementDeclaration.getName();
-		return SnippetProvider.snippets.get(keyword);
-
-	}
-
-	public String generateSnippetForProLog() {
-		return SnippetProvider.snippets.get("xml");
-	}
-
 	private int generate(CMElementDeclaration elementDeclaration, String prefix, int level, int snippetIndex,
-			XMLBuilder xml, List<CMElementDeclaration> generatedElements) {
+						 XMLBuilder xml, List<CMElementDeclaration> generatedElements) {
 		if (generatedElements.contains(elementDeclaration)) {
 			return snippetIndex;
 		}
@@ -109,18 +89,14 @@ public class XMLGenerator {
 			xml.linefeed();
 			xml.indent(level);
 		}
-
 		xml.startElement(prefix, elementDeclaration.getName(), false);
 		// Attributes
 		Collection<CMAttributeDeclaration> attributes = elementDeclaration.getAttributes();
 		snippetIndex = generate(attributes, level, snippetIndex, xml, elementDeclaration.getName());
 		// Elements children
 		Collection<CMElementDeclaration> children = elementDeclaration.getElements();
-
 		if (children.size() > 0) {
 			xml.closeStartElement();
-
-
 			if ((level > maxLevel)) {
 				level++;
 				for (CMElementDeclaration child : children) {
@@ -160,7 +136,7 @@ public class XMLGenerator {
 	}
 
 	private int generate(Collection<CMAttributeDeclaration> attributes, int level, int snippetIndex, XMLBuilder xml,
-			String tagName) {
+						 String tagName) {
 		int attributeIndex = 0;
 		List<CMAttributeDeclaration> requiredAttributes = new ArrayList<CMAttributeDeclaration>();
 		for (CMAttributeDeclaration att : attributes) {
@@ -187,8 +163,13 @@ public class XMLGenerator {
 		return snippetIndex;
 	}
 
+	/**
+	 * Creates the string value for a CompletionItem TextEdit
+	 *
+	 * Can create an enumerated TextEdit if given a collection of values.
+	 */
 	public static String generateAttributeValue(String defaultValue, Collection<String> enumerationValues,
-			boolean canSupportSnippets, int snippetIndex, boolean withQuote) {
+												boolean canSupportSnippets, int snippetIndex, boolean withQuote) {
 		StringBuilder value = new StringBuilder();
 		if (withQuote) {
 			value.append("=\"");
@@ -216,46 +197,6 @@ public class XMLGenerator {
 			}
 		}
 		return value.toString();
-	}
-
-	private XSParticleDecl[] getXsParticleDecls(CMElementDeclaration cmElement) {
-		XSElementDeclaration elementDeclaration = cmElement.getElementDeclaration();
-		XSParticleDecl[] fParticles = null;
-		XSTypeDefinition definition = null;
-		XSParticle particle = null;
-		XSTerm fValue = null;
-		if (elementDeclaration instanceof XSElementDecl) {
-			XSElementDecl xsElementDecl = (XSElementDecl) elementDeclaration;
-			definition = xsElementDecl.fType;
-		}if (definition != null && definition instanceof XSComplexTypeDecl) {
-			XSComplexTypeDecl typeDecl = (XSComplexTypeDecl) definition;
-			particle = typeDecl.getParticle();
-		}if (particle != null && particle instanceof XSParticleDecl) {
-			XSParticleDecl particleDecl = (XSParticleDecl) particle;
-			fValue = particleDecl.fValue;
-		}if (fValue instanceof XSModelGroupImpl) {
-			XSModelGroupImpl modelGroup = (XSModelGroupImpl) fValue;
-			fParticles = modelGroup.fParticles;
-
-		}
-		return fParticles;
-	}
-
-	private Collection<CMElementDeclaration> filterRequiredCmElements(Collection<CMElementDeclaration> cmElements,
-																	  XSParticleDecl[] fParticles){
-
-		Collection<CMElementDeclaration> resultantCMElements = new ArrayList<>();
-
-		int index = 0;
-		for (CMElementDeclaration child : cmElements) {
-			int minOccurs = fParticles[index].fMinOccurs;
-			if (minOccurs > 0) {
-				((ArrayList<CMElementDeclaration>) resultantCMElements).add(child);
-			}
-			index++;
-		}
-		return resultantCMElements;
-
 	}
 
 }

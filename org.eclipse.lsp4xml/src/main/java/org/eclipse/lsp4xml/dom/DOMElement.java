@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.eclipse.lsp4xml.extensions.contentmodel.namespaceResolver.SynapseNamespaceResolver;
 import org.eclipse.lsp4xml.utils.StringUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NodeList;
@@ -74,13 +73,9 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 		return tag;
 	}
 
-	public void setTagName(String tagName) {
-		this.tag = tagName;
-	}
-
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.w3c.dom.Node#getLocalName()
 	 */
 	@Override
@@ -144,7 +139,7 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 			}
 			parent = parent.getParentNode();
 		}
-		return SynapseNamespaceResolver.SYNAPSE_NAMESPACE;
+		return null;
 	}
 
 	public Collection<String> getAllPrefixes() {

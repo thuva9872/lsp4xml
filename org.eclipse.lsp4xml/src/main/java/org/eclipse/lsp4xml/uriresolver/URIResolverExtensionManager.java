@@ -109,7 +109,7 @@ public class URIResolverExtensionManager implements URIResolverExtension, IExter
 	}
 
 	@Override
-	public Map  getExternalSchemaLocation(URI fileURI) {
+	public Map getExternalSchemaLocation(URI fileURI) {
 		for (URIResolverExtension resolver : resolvers) {
 			if (resolver instanceof IExternalSchemaLocationProvider) {
 				Map result = ((IExternalSchemaLocationProvider) resolver).getExternalSchemaLocation(fileURI);

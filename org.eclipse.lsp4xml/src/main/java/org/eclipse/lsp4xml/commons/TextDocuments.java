@@ -69,12 +69,6 @@ public class TextDocuments implements ITextDocumentFactory {
 
 	public void onDidOpenTextDocument(DidOpenTextDocumentParams params) {
 		TextDocumentItem document = params.getTextDocument();
-		String text = document.getText();
-
-		//setting schemaLocation in every change of the document
-		text = text.replaceFirst("xmlns=\"http://ws.apache.org/ns/synapse\"", "xmlns='http://ws.apache.org/ns/synapse' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://ws.apache.org/ns/synapse " + SynapseSchemaUtils.schemaLocation + "'");
-
-		document.setText(text);
 		documents.put(document.getUri(), createDocument(document));
 	}
 

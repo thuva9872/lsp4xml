@@ -12,6 +12,8 @@ package org.eclipse.lsp4xml.dom;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +29,14 @@ import org.eclipse.lsp4xml.uriresolver.URIResolverExtensionManager;
 import org.eclipse.lsp4xml.utils.DOMUtils;
 import org.eclipse.lsp4xml.utils.StringUtils;
 import org.eclipse.lsp4xml.utils.XMLPositionUtility;
-import org.w3c.dom.*;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.DOMConfiguration;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.EntityReference;
+import org.w3c.dom.NodeList;
 
 /**
  * XML document.
@@ -599,17 +608,9 @@ public class DOMDocument extends DOMNode implements Document {
 		throw new UnsupportedOperationException();
 	}
 
-	public NodeList getElementsByTagName(String tagname, Node node) {
-
-		Document ownerDocument = node.getOwnerDocument();
-		NodeList children = ownerDocument.getChildNodes();
-
-
-		throw new UnsupportedOperationException();
-	}
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.w3c.dom.Document#getElementsByTagNameNS(java.lang.String,
 	 * java.lang.String)
 	 */

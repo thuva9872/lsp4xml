@@ -55,23 +55,14 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 		try {
 			DOMDocument document = request.getXMLDocument();
 			ContentModelManager contentModelManager = request.getComponent(ContentModelManager.class);
-
 			DOMElement parentElement = request.getParentElement();
 			if (parentElement == null) {
-
 				// XML is empty, in case of XML file associations, a XMl Schema/DTD can be bound
 				// check if it's root element (in the case of XML file associations, the link to
 				// XML Schema is done with pattern and not with XML root element)
 				CMDocument cmDocument = contentModelManager.findCMDocument(document, null);
-
-				CMElementDeclaration cmElement = ((CMXSDDocument) cmDocument).findElementDeclaration("definitions", "http://ws.apache.org/ns/synapse");
-				Collection<CMElementDeclaration> cmElements = cmElement.getElements();
-
-				Collection<CMElementDeclaration> newCMElements = new ArrayList<>(cmElements);
-				newCMElements.add(cmElement);
-
 				if (cmDocument != null) {
-					fillWithChildrenElementDeclaration(parentElement, newCMElements, null, false, true, request, response);
+					fillWithChildrenElementDeclaration(null, cmDocument.getElements(), null, false, request, response);
 				}
 				return;
 			}
@@ -81,8 +72,7 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 			String defaultPrefix = null;
 			if (cmElement != null) {
 				defaultPrefix = parentElement.getPrefix();
-
-				fillWithChildrenElementDeclaration(parentElement, cmElement.getElements(), defaultPrefix, false, false,
+				fillWithChildrenElementDeclaration(parentElement, cmElement.getElements(), defaultPrefix, false,
 						request, response);
 			}
 			if (parentElement.isDocumentElement()) {
@@ -95,7 +85,7 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 					String namespaceURI = parentElement.getNamespaceURI(prefix);
 					CMDocument cmDocument = contentModelManager.findCMDocument(parentElement, namespaceURI);
 					if (cmDocument != null) {
-						fillWithChildrenElementDeclaration(parentElement, cmDocument.getElements(), prefix, true, false,
+						fillWithChildrenElementDeclaration(parentElement, cmDocument.getElements(), prefix, true,
 								request, response);
 					}
 				}
@@ -105,7 +95,7 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 			CMElementDeclaration cmInternalElement = contentModelManager.findInternalCMElement(parentElement);
 			if (cmInternalElement != null) {
 				defaultPrefix = parentElement.getPrefix();
-				fillWithChildrenElementDeclaration(parentElement, cmInternalElement.getElements(), defaultPrefix, false, false,
+				fillWithChildrenElementDeclaration(parentElement, cmInternalElement.getElements(), defaultPrefix, false,
 						request, response);
 			}
 		} catch (CacheResourceDownloadingException e) {
@@ -113,150 +103,28 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 		}
 	}
 
-	private XSParticleDecl[] getXsParticleDecls(CMElementDeclaration cmElement) {
-		XSElementDeclaration elementDeclaration = cmElement.getElementDeclaration();
-		XSParticleDecl[] fParticles = null;
-		if (elementDeclaration instanceof XSElementDecl) {
-			XSElementDecl xsElementDecl = (XSElementDecl) elementDeclaration;
-			XSTypeDefinition definition = xsElementDecl.fType;
-			if (definition instanceof XSComplexTypeDecl) {
-				XSComplexTypeDecl typeDecl = (XSComplexTypeDecl) definition;
-				XSParticle particle = typeDecl.getParticle();
-				if (particle instanceof XSParticleDecl) {
-					XSParticleDecl particleDecl = (XSParticleDecl) particle;
-					XSTerm fValue = particleDecl.fValue;
-					if (particle instanceof XSParticleDecl) {
-						XSModelGroupImpl modelGroup = (XSModelGroupImpl) fValue;
-						fParticles = modelGroup.fParticles;
-					} else if(particle instanceof XSModelGroupImpl) {
-
-					}
-				}
-			}
-		}
-		return fParticles;
-	}
-
 	private void fillWithChildrenElementDeclaration(DOMElement element, Collection<CMElementDeclaration> cmElements,
-													String p, boolean forceUseOfPrefix, boolean isRootElement, ICompletionRequest request, ICompletionResponse response)
+													String p, boolean forceUseOfPrefix, ICompletionRequest request, ICompletionResponse response)
 			throws BadLocationException {
-
 		XMLGenerator generator = request.getXMLGenerator();
-
 		for (CMElementDeclaration child : cmElements) {
 			String prefix = forceUseOfPrefix ? p : (element != null ? element.getPrefix(child.getNamespace()) : null);
 			String label = child.getName(prefix);
-			String documentation = child.getDocumentation();
-
-			String xml = generator.generateSnippet(child);
-			if (xml != null) {
-				createCompletionItem(child, label, xml, "Snippet: " + documentation, request, response);
-			}
-
-			xml = null;
-			xml = generator.generate(child, prefix);
-			if(xml != null) {
-				createCompletionItem(child, label, xml, documentation, request, response);
-			}
-
-
-		}
-	}
-
-	public void createCompletionItem(CMElementDeclaration child, String label, String xml, String documentation, ICompletionRequest request,
-                                     ICompletionResponse response) throws BadLocationException {
-
-//		String xml = generator.generate(child, prefix);
-//		if(xml != null) {
 			CompletionItem item = new CompletionItem(label);
 			item.setFilterText(request.getFilterForStartTagName(label));
 			item.setKind(CompletionItemKind.Property);
-//			String documentation1 = child.getDocumentation();
+			String documentation = child.getDocumentation();
 			if (documentation != null) {
 				item.setDetail(documentation);
 			}
+			String xml = generator.generate(child, prefix);
 			item.setTextEdit(new TextEdit(request.getReplaceRange(), xml));
 			item.setInsertTextFormat(InsertTextFormat.Snippet);
 			response.addCompletionItem(item, true);
-//		}
-	}
-
-	private Collection<CMElementDeclaration> filterRequiredCmElements(DOMElement element, Collection<CMElementDeclaration> cmElements,
-																	  XSParticleDecl[] fParticles){
-		if (element != null) {
-			Map<String, CMElementDeclaration> cmElementsMap = null;
-			if (cmElements.size() > 0) {
-				cmElementsMap = new HashMap<>();
-				for (CMElementDeclaration child : cmElements) {
-					String name = child.getElementDeclaration().getName();
-					cmElementsMap.put(name, child);
-				}
-			}
-
-			//getting original children of the element
-			Collection<CMElementDeclaration> resultantCMElements = new ArrayList<>();
-			List<DOMNode> children = element.getChildren();
-			List<String> namesOfChildren = new ArrayList<>();
-
-			if (children.size() > 0) {
-				for (DOMNode child : children) {
-					namesOfChildren.add(child.getNodeName());
-				}
-			}
-			int index = 0;
-
-			begin:
-			for (XSParticleDecl particleDecl : fParticles) {
-				XSTerm fValue = particleDecl.fValue;
-				int minOccurs = particleDecl.fMinOccurs;
-				int maxOccurs = particleDecl.fMaxOccurs;
-
-				if (fValue instanceof XSModelGroupImpl) {
-					int fParticalCount = ((XSModelGroupImpl) fValue).fParticleCount;
-					XSParticleDecl[] internalfParticles = ((XSModelGroupImpl) fValue).fParticles;
-
-					for(int i = 0; i < fParticalCount; i++) {
-
-					}
-
-
-
-					XSModelGroupImpl modelGroup = (XSModelGroupImpl) fValue;
-					fParticles = modelGroup.fParticles;
-				}else if (fValue instanceof XSElementDecl) {
-					String name = particleDecl.fValue.getName();
-					if (namesOfChildren.size() > 0 && namesOfChildren.contains(name)) {
-						int occurrence = Collections.frequency(namesOfChildren, name);
-
-						if (occurrence < maxOccurs) {
-							((ArrayList<CMElementDeclaration>) resultantCMElements).add(cmElementsMap.get(name));
-						}
-					}else {
-						((ArrayList<CMElementDeclaration>) resultantCMElements).add(cmElementsMap.get(name));
-					}
-				}
-
-			}
-
-
-			for (CMElementDeclaration child : cmElements) {
-				String name = child.getElementDeclaration().getName();
-				if (namesOfChildren.size() > 0 && namesOfChildren.contains(child.getElementDeclaration().getName())) {
-					int occurance = Collections.frequency(namesOfChildren, name);
-					int maxOccurs = fParticles[index].fMaxOccurs;
-
-					if (occurance < maxOccurs) {
-						((ArrayList<CMElementDeclaration>) resultantCMElements).add(child);
-					}
-				}else {
-					boolean status = ((ArrayList<CMElementDeclaration>) resultantCMElements).add(child);
-				}
-				index++;
-			}
-			return resultantCMElements;
 		}
-		return cmElements;
 	}
+
+
 
 	@Override
 	public void onAttributeName(boolean generateValue, Range fullRange, ICompletionRequest request,

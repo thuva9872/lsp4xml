@@ -117,11 +117,10 @@ public class XMLLanguageService extends XMLExtensionsRegistry {
 													  CancelChecker monitor, XMLValidationSettings validationSettings) {
 		String uri = xmlDocument.getDocumentURI();
 		int version = xmlDocument.getTextDocument().getVersion();
-
 		try {
 			List<Diagnostic> diagnostics = this.doDiagnostics(xmlDocument, monitor, validationSettings);
 			monitor.checkCanceled();
-			
+
 			publishDiagnostics.accept(new PublishDiagnosticsParams(uri, diagnostics));
 			return null;
 		} catch (CacheResourceDownloadingException e) {

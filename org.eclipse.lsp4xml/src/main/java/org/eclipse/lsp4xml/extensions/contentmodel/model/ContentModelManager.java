@@ -23,7 +23,6 @@ import org.eclipse.lsp4xml.extensions.contentmodel.uriresolver.XMLCacheResolverE
 import org.eclipse.lsp4xml.extensions.contentmodel.uriresolver.XMLCatalogResolverExtension;
 import org.eclipse.lsp4xml.extensions.contentmodel.uriresolver.XMLFileAssociationResolverExtension;
 import org.eclipse.lsp4xml.uriresolver.URIResolverExtensionManager;
-import org.eclipse.lsp4xml.utils.SynapseSchemaUtils;
 import org.eclipse.lsp4xml.utils.URIUtils;
 
 /**
@@ -62,7 +61,7 @@ public class ContentModelManager {
 	/**
 	 * Returns the declared element which matches the given XML element and null
 	 * otherwise.
-	 * 
+	 *
 	 * @param element the XML element
 	 * @return the declared element which matches the given XML element and null
 	 *         otherwise.
@@ -85,7 +84,7 @@ public class ContentModelManager {
 	/**
 	 * Returns the content model document loaded by the given uri and null
 	 * otherwise.
-	 * 
+	 *
 	 * @param publicId      the public identifier.
 	 * @param systemId      the expanded system identifier.
 	 * @param modelProvider
@@ -93,11 +92,9 @@ public class ContentModelManager {
 	 *         otherwise.
 	 */
 	private CMDocument findCMDocument(String uri, String publicId, String systemId,
-			ContentModelProvider modelProvider) {
+									  ContentModelProvider modelProvider) {
 		// Resolve the XML Schema/DTD uri (file, http, etc)
-//		String key = resolverManager.resolve(uri, publicId, systemId);
-		String key = SynapseSchemaUtils.schemaLocation;
-
+		String key = resolverManager.resolve(uri, publicId, systemId);
 		if (key == null) {
 			return null;
 		}
@@ -132,7 +129,7 @@ public class ContentModelManager {
 	/**
 	 * Returns the declared element which matches the given XML element and null
 	 * otherwise.
-	 * 
+	 *
 	 * @param element the XML element
 	 * @return the declared element which matches the given XML element and null
 	 *         otherwise.
@@ -158,7 +155,7 @@ public class ContentModelManager {
 	 * Returns the content model provider by using standard association
 	 * (xsi:schemaLocation, xsi:noNamespaceSchemaLocation, doctype) an dnull
 	 * otherwise.
-	 * 
+	 *
 	 * @param xmlDocument
 	 * @return the content model provider by using standard association
 	 *         (xsi:schemaLocation, xsi:noNamespaceSchemaLocation, doctype) an dnull
@@ -188,7 +185,7 @@ public class ContentModelManager {
 
 	/**
 	 * Set up XML catalogs.
-	 * 
+	 *
 	 * @param catalogs list of XML catalog files.
 	 * @return true if catalogs changed and false otherwise
 	 */
@@ -205,7 +202,7 @@ public class ContentModelManager {
 
 	/**
 	 * Set file associations.
-	 * 
+	 *
 	 * @param fileAssociations
 	 * @return true if file associations changed and false otherwise
 	 */
