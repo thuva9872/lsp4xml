@@ -48,6 +48,7 @@ class XMLFormatter {
 	private static final Logger LOGGER = Logger.getLogger(XMLFormatter.class.getName());
 
 	private final XMLExtensionsRegistry extensionsRegistry;
+	private DOMNode previousNode;
 
 	public XMLFormatter(XMLExtensionsRegistry extensionsRegistry) {
 		this.extensionsRegistry = extensionsRegistry;
@@ -90,14 +91,16 @@ class XMLFormatter {
 	}
 
 	private void format(DOMNode node, int level, int end, XMLBuilder xml) {
+		
 		if (node.getNodeType() != DOMNode.DOCUMENT_NODE) {
 			boolean doLineFeed;
 			if(node.getOwnerDocument().isDTD()) {
 				doLineFeed = false;
 			} else {
 				doLineFeed = !(node.isComment() && ((DOMComment) node).isCommentSameLineEndTag())
-					&& (!isPreviousNodeType(node, DOMNode.TEXT_NODE) || xml.isJoinContentLines())
-					&& (!node.isText() || ((xml.isJoinContentLines() && !isFirstChildNode(node))));
+					&& (!node.isText() || ((DOMText) node).hasSiblings());
+
+					//&& (!isPreviousSiblingNodeType(node, DOMNode.TEXT_NODE) || !((DOMText) node.getPreviousSibling()).endsWithNewLine())
 			}
 
 			if (level > 0 && doLineFeed) {
@@ -119,12 +122,12 @@ class XMLFormatter {
 						List<DOMAttr> attributes = element.getAttributeNodes();
 						if (attributes.size() == 1) {
 							DOMAttr singleAttribute = attributes.get(0);
-							xml.addSingleAttribute(singleAttribute.getName(), singleAttribute.getValue());
+							xml.addSingleAttribute(singleAttribute.getName(), singleAttribute.getOriginalValue());
 						} else {
 							int attributeIndex = 0;
 							for (DOMAttr attr : attributes) {
 								String attributeName = attr.getName();
-								xml.addAttribute(attributeName, attr.getValue(), attributeIndex, level, tag);
+								xml.addAttribute(attr, level);
 								attributeIndex++;
 							}
 						}
@@ -205,21 +208,17 @@ class XMLFormatter {
 						if (value == null) {
 							continue;
 						}
-						xml.addSingleAttribute(name, value);
+						xml.addSingleAttribute(name, value, true);
 					}
 				}
 				xml.endPrologOrPI();
 				xml.linefeed();
 			} else if (node.isText()) {
-				DOMText text = (DOMText) node;
-				if (text.hasData()) {
-					// Generate content
-					String content = text.getData();
-					if (!content.isEmpty()) {
-						xml.addContent(content);
-					}
-
-				}
+				DOMText textNode = (DOMText) node;
+				
+				// Generate content
+				String content = textNode.getData();
+				xml.addContent(content, textNode.isWhitespace(), textNode.hasSiblings());
 				return;
 			} else if (node.isDoctype()) {
 				boolean isDTD = node.getOwnerDocument().isDTD();
@@ -351,9 +350,8 @@ class XMLFormatter {
 		return node.equals(node.getParentNode().getFirstChild());
 	}
 
-	private static boolean isPreviousNodeType(DOMNode node, short nodeType) {
+	private static boolean isPreviousSiblingNodeType(DOMNode node, short nodeType) {
 		DOMNode previousNode = node.getPreviousSibling();
 		return previousNode != null && previousNode.getNodeType() == nodeType;
 	}
-
 }

@@ -287,7 +287,7 @@ public class XMLFormatterTest {
 		"line 2" + lineSeparator() + 
 		"line 3" + lineSeparator() + 
 		"]]> </a>";
-		String expected = "<a>" + lineSeparator() + "  <![CDATA[line 1 line 2 line 3 ]]>" + lineSeparator() + "</a>";
+		String expected = "<a>" + lineSeparator() + "  <![CDATA[line 1 line 2 line 3]]>" + lineSeparator() + "</a>";
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
 		formattingOptions.setJoinCDATALines(true);
 		format(content, expected, formattingOptions);
@@ -351,14 +351,14 @@ public class XMLFormatterTest {
 		String content = 
 		"<a>" + lineSeparator() +
 		" Content" + lineSeparator() +
-		"</a> <!-- My Comment -->";
+		"</a> <!-- My   Comment   -->";
 		String expected = 
-		"<a>Content </a> <!-- My Comment -->" + lineSeparator() +
-		"";
+		"<a>" + lineSeparator() +
+		" Content" + lineSeparator() +
+		"</a> <!-- My Comment -->\n";
 	
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
 		formattingOptions.setJoinCommentLines(true);
-		formattingOptions.setJoinContentLines(true);
 		format(content, expected, formattingOptions);
 	}
 
@@ -382,147 +382,9 @@ public class XMLFormatterTest {
 		"</a>";
 	
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(false);
 		format(content, expected, formattingOptions);
 	}
 
-	@Test
-	public void testElementContentNormalized() throws BadLocationException {
-		String content = 
-		"<a>" + lineSeparator() +
-		" Content" + lineSeparator() +
-		"     Content2" + lineSeparator() +
-		"      Content3" + lineSeparator() +
-		" Content4" + lineSeparator() +
-		"  Content5" + lineSeparator() +
-		"</a>";
-		String expected = 
-		"<a>Content Content2 Content3 Content4 Content5 </a>";
-		
-	
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(true);
-		format(content, expected, formattingOptions);
-	}
-
-
-
-	@Test
-	@Ignore
-	public void testDTDFormatting() throws BadLocationException {
-		String content = 
-			"<!DOCTYPE web-app PUBLIC\r\n" + 
-			"\"-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN\"\r\n" +
-			"\"http://java.sun.com/dtd/web-app_2_3.dtd\" >\r\n" + 
-		    "<web-app>\r\n" + 
- 			"  <display-name>Servlet 2.3 Web Application</display-name>\r\n" + 
-		    "</web-app>";
-		String expected = 
-			"<!DOCTYPE web-app PUBLIC\r\n" + 
-			"\"-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN\"\r\n" + 
-			"\"http://java.sun.com/dtd/web-app_2_3.dtd\" >\r\n" + 
-			"<web-app>\r\n" + 
-			"  <display-name>Servlet 2.3 Web Application</display-name>\r\n" + 
-			"</web-app>";
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		format(content, expected, formattingOptions);
-	}
-
-	@Test
-	@Ignore
-	public void testDTDFormattingInternal() throws BadLocationException {
-		String content = 
-			"<?xml version=\"1.0\"?>\r\n" +
-			"\r\n" +
-			"\r\n" +
-			"<!DOCTYPE student [\r\n" +
-			"  <!ELEMENT student (surname,id)>\r\n" + 
-			"  <!ELEMENT surname (#PCDATA)>\r\n" + 
-			"  <!ELEMENT id (#PCDATA)>\r\n" + 
-			"]>\r\n" + 
-			"\r\n" + 
-			"<student>\r\n" + 
-			"\r\n" + 
-			"\r\n" + 
-			"  <surname>Smith</surname>\r\n" + 
-			"  <id>567896</id>\r\n" + 
-			"</student>";
-		String expected = 
-			"<?xml version=\"1.0\"?>\r\n" + 
-			"<!DOCTYPE student [\r\n" +
-			"  <!ELEMENT student (surname,id)>\r\n" +
-			"  <!ELEMENT surname (#PCDATA)>\r\n" +
-			"  <!ELEMENT id (#PCDATA)>\r\n" + 
-			"]>\r\n" +
-			"<student>\r\n" +
-			"  <surname>Smith</surname>\r\n" + 
-			"  <id>567896</id>\r\n" +
-			"</student>";
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		format(content, expected, formattingOptions);
-	}
-
-	@Test
-	@Ignore
-	public void testDTDFormattingExternal() throws BadLocationException {
-		String content = 
-			"<?xml version=\"1.0\"?>\r\n" + 
-			"<!DOCTYPE SYSTEM \"test.xsd>\r\n" + 
-			"<student>\r\n" + 
-			"  <surname>Smith</surname>\r\n" + 
-			"  <id>567896</id>\r\n" + 
-			"</student>";
-		String expected = 
-			"<?xml version=\"1.0\"?>\r\n" + 
-			"<!DOCTYPE SYSTEM \"test.xsd>\r\n" + 
-			"<student>\r\n" + 
-			"  <surname>Smith</surname>\r\n" + 
-			"  <id>567896</id>\r\n" + 
-			"</student>";
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		format(content, expected, formattingOptions);
-	}
-
-	@Test
-	@Ignore
-	public void testDTDFormattingEmptyContent() throws BadLocationException {
-		String content = 
-			"<?xml version=\"1.0\"?>\r\n" + 
-			"<!DOCTYPE >\r\n" + 
-			"<student>\r\n" + 
-			"  <surname>Smith</surname>\r\n" + 
-			"  <id>567896</id>\r\n" + 
-			"</student>";
-		String expected = 
-			"<?xml version=\"1.0\"?>\r\n" + 
-			"<!DOCTYPE >\r\n" + 
-			"<student>\r\n" + 
-			"  <surname>Smith</surname>\r\n" +
-			"  <id>567896</id>\r\n" + 
-			"</student>";
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		format(content, expected, formattingOptions);
-	}
-
-	@Test
-	public void testContentFormatting1() throws BadLocationException {
-		String content = 
-		"<a>" + lineSeparator() +
-		" Content" + lineSeparator() +
-		" <b>" + lineSeparator() +
-		"   Content2" + lineSeparator() +
-		"    Content3" + lineSeparator() +
-		" </b>" + lineSeparator() +
-		"</a>";
-		String expected = 
-		"<a>Content " + lineSeparator() +
-		"  <b>Content2 Content3 </b>" + lineSeparator() +
-		"</a>";
-		
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(true);
-		format(content, expected, formattingOptions);
-	}
 
 	@Test
 	public void testContentFormatting2() throws BadLocationException {
@@ -536,15 +398,14 @@ public class XMLFormatterTest {
 		"</a>";
 		String expected = 
 		"<a>\r" +
-		" Content\r" +
-		" <b>\r" +
+		"  Content\r" +
+		"  <b>\r" +
 		"   Content2\r" +
 		"    Content3\r" +
 		" </b>\r" +
 		"</a>";
 		
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(false);
 		format(content, expected, formattingOptions);
 	}
 
@@ -559,14 +420,13 @@ public class XMLFormatterTest {
 		"</a>";
 		String expected = 
 		"<a>\r" +
-		" Content\r" +
-		" <b>\r" +
+		"  Content\r" +
+		"  <b>\r" +
 		"   Content2\r" +
 		"    Content3 </b>\r" +
 		"</a>";
 		
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(false);
 		format(content, expected, formattingOptions);
 	}
 
@@ -578,56 +438,32 @@ public class XMLFormatterTest {
 		"<a> content </a>";
 		
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(false);
-		format(content, expected, formattingOptions);
-	}
-
-	@Test
-	public void testContentFormatting4() throws BadLocationException {
-		String content = 
-		"<a> content </a>";
-		String expected = 
-		"<a>content </a>";
-		
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(true);
-		format(content, expected, formattingOptions);
-	}
-
-	@Test
-	public void testContentFormatting5() throws BadLocationException {
-		String content = 
-		"<a>" + lineSeparator() +
-		" Content" + lineSeparator() +
-		"</a>";
-		String expected = 
-		"<a>Content </a>";
-		
-		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(true);
 		format(content, expected, formattingOptions);
 	}
 
 	@Test
 	public void testContentFormatting6() throws BadLocationException {
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
-		formattingOptions.setJoinContentLines(false);
 		
-		String content = "<a>\r" + //
+		String content = 
+				"<a>\r" + //
 				"\r" + //
 				" Content\r" + //
 				"</a>";
-		String expected = "<a>\r" + //
+		String expected = 
+				"<a>\r" + //
 				"\r" + //
 				" Content\r" + //
 				"</a>";
 		format(content, expected, formattingOptions);
 		
-		content = "<a>\r\n" + //
+		content = 
+				"<a>\r\n" + //
 				"\r\n" + //
 				" Content\r\n" + //
 				"</a>";
-		expected = "<a>\r\n" + //
+		expected = 
+				"<a>\r\n" + //
 				"\r\n" + //
 				" Content\r\n" + //
 				"</a>";
@@ -649,6 +485,21 @@ public class XMLFormatterTest {
 		format(content, expected, formattingOptions);
 	}
 
+	@Test public void testSelfCloseTagAlreadyHasSpace() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setSpaceBeforeEmptyCloseTag(true);
+		
+		String content = 
+				"<a>\r" + //
+				" <b />\r" + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  <b />\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
 	@Test public void testSelfCloseTagSpaceFalse() throws BadLocationException {
 		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
 		formattingOptions.setSpaceBeforeEmptyCloseTag(false);
@@ -656,6 +507,21 @@ public class XMLFormatterTest {
 		String content = 
 				"<a>\r" + //
 				" <b/>\r" + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  <b/>\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testSelfCloseTagSpaceFalseAlreadyHasSpace() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setSpaceBeforeEmptyCloseTag(false);
+		
+		String content = 
+				"<a>\r" + //
+				" <b />\r" + //
 				"</a>";
 		String expected = 
 				"<a>\r" + //
@@ -691,6 +557,260 @@ public class XMLFormatterTest {
 		String expected = 
 				"<a>\r" + //
 				"  <b> Value </b\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveEmptyContentTag() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(true);
+		
+		String content = 
+				"<a>\r" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"     " + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testDontPreserveEmptyContentTag() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		
+		String content = 
+				"<a>\r" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveTextContent() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(true);
+		
+		String content = 
+				"<a>\r" + //
+				"   aaa  " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"   aaa  " + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveTextContent2() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		
+		String content = 
+				"<a>\r" + //
+				"   aaa  " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"   aaa  " + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveEmptyContentTagWithSiblings() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(true);
+		
+		String content = 
+				"<a>\r" + //
+				"     " + //
+				"  <b>  </b>" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  <b>  </b>\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveEmptyContentTagWithSiblingContent() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(true);
+		
+		String content = 
+				"<a>\r" + //
+				"   zz  " + //
+				"  <b>  </b>tt" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  zz\r" + //
+				"  <b>  </b>\r" + //
+				"  tt\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testDontPreserveEmptyContentTagWithSiblingContent() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		
+		String content = 
+				"<a>\r" + //
+				"   zz  " + //
+				"  <b>  </b>tt" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  zz\r" + //
+				"  <b></b>\r" + //
+				"  tt\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveEmptyContentTagWithSiblingWithComment() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(true);
+		
+		String content = 
+				"<a>\r" + //
+				"   zz  " + //
+				"  <b>  </b>tt <!-- Comment -->" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  zz\r" + //
+				"  <b>  </b>\r" + //
+				"  tt <!-- Comment -->\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testDontPreserveEmptyContentTagWithSiblingWithComment() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		
+		String content = 
+				"<a>\r" + //
+				"   zz  " + //
+				"  <b>  </b>tt <!-- Comment -->" + //
+				"     " + //
+				"</a>";
+		String expected = 
+				"<a>\r" + //
+				"  zz\r" + //
+				"  <b></b>\r" + //
+				"  tt <!-- Comment -->\r" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testPreserveEmptyContentWithJoinContentLines() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(true);
+		formattingOptions.setJoinContentLines(true);
+		
+		String content = 
+				"<a>\n" + //
+				"   zz  \n" + //
+				"   zz  \n" + //
+				"   <a>  </a>  \n" + //
+				"</a>";
+		String expected = 
+				"<a>\n" + //
+				"  zz zz\n" + //
+				"  <a>  </a>\n" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testJoinContentLinesTrue() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		formattingOptions.setJoinContentLines(true);
+		
+		String content = 
+				"<a>\n" + //
+				"   zz  \n" + //
+				"   zz  " + //
+				"</a>";
+		String expected = 
+				"<a>zz zz</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testJoinContentLinesTrue2() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		formattingOptions.setJoinContentLines(true);
+		
+		String content = 
+				"<a>zz zz zz</a>";
+		String expected = 
+				"<a>zz zz zz</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testJoinContentLinesFalse() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		formattingOptions.setJoinContentLines(false);
+		
+		String content = 
+				"<a>\n" + //
+				"   zz  \n" + //
+				"   zz  " + //
+				"</a>";
+		String expected = 
+				"<a>\n" + //
+				"   zz  \n" + //
+				"   zz  " + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testJoinContentLinesWithSiblingElementTrue() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		formattingOptions.setJoinContentLines(true);
+		
+		String content = 
+				"<a>\n" + //
+				"   zz  \n" + //
+				"   zz  \n" + //
+				"   <a>  </a>  \n" + //
+				"</a>";
+		String expected = 
+				"<a>\n" + //
+				"  zz zz\n" + //
+				"  <a></a>\n" + //
+				"</a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test public void testJoinContentLinesWithSiblingElementFalse() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setPreserveEmptyContent(false);
+		formattingOptions.setJoinContentLines(false);
+		
+		String content = 
+				"<a>\n" + //
+				"   zz  \n" + //
+				"   zz  \n" + //
+				"   <a>  </a>  \n" + //
+				"</a>";
+		String expected = 
+				"<a>\n" + //
+				"  zz  \n" + //
+				"   zz\n" + //
+				"  <a></a>\n" + //
 				"</a>";
 		format(content, expected, formattingOptions);
 	}
@@ -1303,6 +1423,173 @@ public class XMLFormatterTest {
 				">\r\n" + 
 				"<!-- Hypertext anchors. -->";
 		format(content, expected, formattingOptions, "test.dtd");
+	}
+
+	@Test 
+	public void testUseDoubleQuotesFromDoubleQuotes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.DOUBLE_QUOTES_VALUE);
+		
+		String content = 
+				"<a name=  \" value \"> </a>";
+		String expected = 
+				"<a name=\" value \"></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseInvalidValueFromDoubleQuotes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations("INVALID_VALUE");
+		
+		String content = 
+				"<a name=  \" value \"> </a>";
+		String expected = 
+				"<a name=\" value \"></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseSingleQuotesFromSingleQuotes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		String content = 
+				"<a name=  \' value \'> </a>";
+		String expected = 
+				"<a name=\' value \'></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseSingleQuotesFromDoubleQuotes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		
+		String content = 
+				"<a name=  \" value \"> </a>";
+		String expected = 
+				"<a name=\' value \'></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseDoubleQuotesFromSingleQuotes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		
+		String content = 
+				"<a name=  \' value \'> </a>";
+		String expected = 
+				"<a name=\" value \"></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseSingleQuotesNoQuotes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		String content = 
+				"<a name = test> </a>";
+		String expected = 
+				"<a name= test></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseSingleQuotesNoQuotesSplit() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		formattingOptions.setSplitAttributes(true);
+		String content = 
+				"<a name = test> </a>";
+		String expected = 
+				"<a\n" +
+				"    name=\n" +
+				"    test></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testAttValueOnlyStartQuote() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		String content = 
+				"<a name = \"> </a>";
+		String expected = 
+				"<a name=\"> </a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseDoubleQuotesMultipleAttributes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		
+		String content = 
+				"<a name1=  \" value1 \"  name2= \" value2 \"   name3= \' value3 \' > </a>";
+		String expected = 
+				"<a name1=\" value1 \" name2=\" value2 \" name3=\" value3 \"></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseSingleQuotesMultipleAttributes() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+
+		String content = 
+				"<a name1=  \" value1 \"  name2= \" value2 \"   name3= \' value3 \' > </a>";
+		String expected = 
+				"<a name1=\' value1 \' name2=\' value2 \' name3=\' value3 \'></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseDoubleQuotesMultipleAttributesSplit() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setSplitAttributes(true);
+		
+		String content = 
+				"<a name1=  \" value1 \"  name2= \" value2 \"   name3= \' value3 \' > </a>\n";
+		String expected = 
+				"<a\n" + 
+				"    name1=\" value1 \"\n" +
+				"    name2=\" value2 \"\n" +
+				"    name3=\" value3 \"></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testUseSingleQuotesMultipleAttributesSplit() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setSplitAttributes(true);
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		String content = 
+				"<a name1=  \" value1 \"  name2= \" value2 \"   name3= \' value3 \' > </a>\n";
+		String expected = 
+				"<a\n" + 
+				"    name1=\' value1 \'\n" +
+				"    name2=\' value2 \'\n" +
+				"    name3=\' value3 \'></a>";
+		format(content, expected, formattingOptions);
+	}
+
+	@Test 
+	public void testAttributeNameTouchingPreviousValue() throws BadLocationException {
+		XMLFormattingOptions formattingOptions = createDefaultFormattingOptions();
+		formattingOptions.setQuotations(XMLFormattingOptions.SINGLE_QUOTES_VALUE);
+		formattingOptions.setSplitAttributes(true);
+		
+		String content = 
+				"<xml>\r\n" + 
+				"  <a zz= tt = \"aa\"aa ></a>\r\n" + 
+				"</xml>";
+		String expected = 
+				"<xml>\r\n" + 
+				"  <a\r\n" + 
+				"      zz=\r\n" + 
+				"      tt='aa'\r\n" + 
+				"      aa></a>\r\n" + 
+				"</xml>";
+		format(content, expected, formattingOptions);
 	}
 	
 	

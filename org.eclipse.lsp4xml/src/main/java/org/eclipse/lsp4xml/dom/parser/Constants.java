@@ -33,6 +33,8 @@ public class Constants {
 	public final static int _CSB = "]".codePointAt(0);
 	public final static int _ORB = "(".codePointAt(0);
 	public final static int _CRB = ")".codePointAt(0);
+	public final static int _OCB = "{".codePointAt(0);
+	public final static int _CCB = "}".codePointAt(0);
 	public final static int _CVL = "C".codePointAt(0);
 	public final static int _DVL = "D".codePointAt(0);
 	public final static int _AVL = "A".codePointAt(0);
@@ -60,7 +62,7 @@ public class Constants {
 
 	public static final Pattern ATTRIBUTE_NAME_REGEX = Pattern.compile("^[^\\s\"'<>/=\\x00-\\x0F\\x7F\\x80-\\x9F]*");
 
-	public static final Pattern ATTRIBUTE_VALUE_REGEX = Pattern.compile("^[^\\s\"'`=<>\\/]+");
+	public static final Pattern ATTRIBUTE_VALUE_REGEX = Pattern.compile("^(\"[^\"]*\"?)|(\'[^\']*\'?)");
 
 	public static final Pattern URL_VALUE_REGEX = Pattern.compile("^(\"|\')[^<>\"]*(\"|\')");
 

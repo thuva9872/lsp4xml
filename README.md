@@ -101,6 +101,8 @@ You will have to reference the Maven repository hosting the dependency you need.
   </releases>
 </repository>
 ```
+or P2 repository: [https://dl.bintray.com/lsp4xml/p2/`<VERSION>`](https://dl.bintray.com/lsp4xml/p2/) 
+
 
 And if you want to consume the SNAPSHOT builds instead:
 ```xml
@@ -115,12 +117,19 @@ And if you want to consume the SNAPSHOT builds instead:
   </snapshots>
 </repository>
 ```
+or P2 repository:
+[https://lsp4xml.jfrog.io/lsp4xml/generic-local/p2/lsp4xml/`<VERSION>`](https://lsp4xml.jfrog.io/lsp4xml/generic-local/p2/lsp4xml/)
 
 Clients
 -------
 
-Here client which consumes this XML Language Server:
+Here are some clients consuming this XML Language Server:
 
- * Eclipse with [lsp4e-xml](https://github.com/angelozerr/lsp4e-xml)
+ * Eclipse IDE with [Wild Web Developer](https://github.com/eclipse/wildwebdeveloper)
  * VSCode with [vscode-xml](https://github.com/redhat-developer/vscode-xml)
  * Theia with [theia-xml](https://github.com/theia-ide/theia-xml-extension)
+
+ ---
+
+ ![Gracefully powered by Artifactory](images/Powered-by-artifactory_01.png)
+ 

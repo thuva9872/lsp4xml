@@ -10,6 +10,8 @@
  */
 package org.eclipse.lsp4xml.settings;
 
+import java.util.Objects;
+
 import org.eclipse.lsp4j.FormattingOptions;
 
 /**
@@ -24,9 +26,18 @@ public class XMLFormattingOptions extends FormattingOptions {
 	private static final String JOIN_CDATA_LINES = "joinCDATALines";
 	private static final String FORMAT_COMMENTS = "formatComments";
 	private static final String JOIN_COMMENT_LINES = "joinCommentLines";
-	private static final String JOIN_CONTENT_LINES = "joinContentLines";
 	private static final String ENABLED = "enabled";
 	private static final String SPACE_BEFORE_EMPTY_CLOSE_TAG = "spaceBeforeEmptyCloseTag";
+	private static final String QUOTATIONS = "quotations";
+	private static final String JOIN_CONTENT_LINES = "joinContentLines";
+
+	// Values for QUOTATIONS
+	public static final String DOUBLE_QUOTES_VALUE = "doubleQuotes";
+	public static final String SINGLE_QUOTES_VALUE = "singleQuotes";
+	enum Quotations {
+		doubleQuotes, singleQuotes
+	}	
+	private static final String PRESERVE_EMPTY_CONTENT = "preserveEmptyContent";
 
 	public XMLFormattingOptions() {
 		this(false);
@@ -53,6 +64,8 @@ public class XMLFormattingOptions extends FormattingOptions {
 		this.setJoinContentLines(false);
 		this.setEnabled(true);
 		this.setSpaceBeforeEmptyCloseTag(true);
+		this.setQuotations(DOUBLE_QUOTES_VALUE);
+		this.setPreserveEmptyContent(false);
 	}
 
 	public XMLFormattingOptions(int tabSize, boolean insertSpaces, boolean initializeDefaultSettings) {
@@ -161,6 +174,70 @@ public class XMLFormattingOptions extends FormattingOptions {
 
 	public boolean isSpaceBeforeEmptyCloseTag() {
 		final Boolean value = this.getBoolean(XMLFormattingOptions.SPACE_BEFORE_EMPTY_CLOSE_TAG);
+		if ((value != null)) {
+			return (value).booleanValue();
+		} else {
+			return true;
+		}
+	}
+
+	public void setQuotations(final String quotations) {
+		this.putString(XMLFormattingOptions.QUOTATIONS, quotations);
+	}
+
+	/**
+	 * Returns the value of the format.quotations preference.
+	 * 
+	 * If invalid or null, the default is {@link XMLFormattingOptions#DOUBLE_QUOTES_VALUE}.
+	 */
+	public String getQuotations() {
+		final String value = this.getString(XMLFormattingOptions.QUOTATIONS);
+		if ((value != null) && isValidQuotations()) {
+			return value;
+		} else {
+			this.setQuotations(XMLFormattingOptions.DOUBLE_QUOTES_VALUE);
+			return DOUBLE_QUOTES_VALUE;// default
+		}
+	}
+
+	/**
+	 * Returns the actual quotation value as a String.
+	 * 
+	 * Either a {@code '} or {@code "}.
+	 * 
+	 * Defaults to {@code "}.
+	 */
+	public String getQuotationAsString() {
+		return XMLFormattingOptions.DOUBLE_QUOTES_VALUE.equals(getQuotations()) ? "\"" : "\'";
+	}
+
+	/**
+	 * If the quotations preference is a valid option.
+	 * 
+	 * Keep up to date with new preferences.
+	 * @return
+	 */
+	private boolean isValidQuotations() {
+		final String value = this.getString(XMLFormattingOptions.QUOTATIONS);
+		return SINGLE_QUOTES_VALUE.equals(value) || DOUBLE_QUOTES_VALUE.equals(value);
+	}
+
+	/**
+	 * Checks if {@code quotation} equals the current value for {@code format.quotations}.
+	 * @param quotation 
+	 * @return
+	 */
+	public boolean isQuotations(String quotation) {
+		String value = getQuotations();
+		return Objects.equals(value, quotation);
+	}
+
+	public void setPreserveEmptyContent(final boolean spaceBeforeEmptyCloseTag) {
+		this.putBoolean(XMLFormattingOptions.PRESERVE_EMPTY_CONTENT, Boolean.valueOf(spaceBeforeEmptyCloseTag));
+	}
+
+	public boolean isPreserveEmptyContent() {
+		final Boolean value = this.getBoolean(XMLFormattingOptions.PRESERVE_EMPTY_CONTENT);
 		if ((value != null)) {
 			return (value).booleanValue();
 		} else {

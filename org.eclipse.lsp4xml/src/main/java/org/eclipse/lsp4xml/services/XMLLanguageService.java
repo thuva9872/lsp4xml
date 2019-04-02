@@ -42,11 +42,13 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4xml.commons.BadLocationException;
 import org.eclipse.lsp4xml.commons.TextDocument;
+import org.eclipse.lsp4xml.customservice.AutoCloseTagResponse;
 import org.eclipse.lsp4xml.dom.DOMDocument;
 import org.eclipse.lsp4xml.dom.DOMElement;
 import org.eclipse.lsp4xml.extensions.contentmodel.settings.XMLValidationSettings;
 import org.eclipse.lsp4xml.services.extensions.CompletionSettings;
 import org.eclipse.lsp4xml.services.extensions.XMLExtensionsRegistry;
+import org.eclipse.lsp4xml.settings.SharedSettings;
 import org.eclipse.lsp4xml.settings.XMLFormattingOptions;
 import org.eclipse.lsp4xml.uriresolver.CacheResourceDownloadingException;
 import org.eclipse.lsp4xml.utils.XMLPositionUtility;
@@ -99,9 +101,8 @@ public class XMLLanguageService extends XMLExtensionsRegistry {
 		return symbolsProvider.findDocumentSymbols(xmlDocument);
 	}
 
-	public CompletionList doComplete(DOMDocument xmlDocument, Position position, CompletionSettings completionSettings,
-			XMLFormattingOptions formattingSettings) {
-		return completions.doComplete(xmlDocument, position, completionSettings, formattingSettings);
+	public CompletionList doComplete(DOMDocument xmlDocument, Position position, SharedSettings settings) {
+		return completions.doComplete(xmlDocument, position, settings);
 	}
 
 	public Hover doHover(DOMDocument xmlDocument, Position position) {
@@ -188,11 +189,11 @@ public class XMLLanguageService extends XMLExtensionsRegistry {
 		return codeActions.doCodeActions(context, range, document, formattingSettings);
 	}
 
-	public String doTagComplete(DOMDocument xmlDocument, Position position) {
+	public AutoCloseTagResponse doTagComplete(DOMDocument xmlDocument, Position position) {
 		return completions.doTagComplete(xmlDocument, position);
 	}
 
-	public String doAutoClose(DOMDocument xmlDocument, Position position) {
+	public AutoCloseTagResponse doAutoClose(DOMDocument xmlDocument, Position position) {
 		try {
 			int offset = xmlDocument.offsetAt(position);
 			String text = xmlDocument.getText();

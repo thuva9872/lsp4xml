@@ -28,6 +28,18 @@ import org.junit.Test;
 public class XMLSchemaDiagnosticsTest {
 
 	@Test
+	public void prematureEOFNoErrorReported() throws Exception {
+		String xml = " ";
+		testDiagnosticsFor(xml);
+	}
+
+	@Test
+	public void prematureEOFWithPrologNoErrorReported() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> ";
+		testDiagnosticsFor(xml);
+	}
+
+	@Test
 	public void cvc_complex_type_2_3() throws Exception {
 		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
 				"<beans xmlns=\"http://www.springframework.org/schema/beans\" xsi:schemaLocation=\"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"
@@ -36,7 +48,7 @@ public class XMLSchemaDiagnosticsTest {
 				"		XXXXXXXXXXXXX\r\n" + // <-- error
 				"	</bean>\r\n" + //
 				"</beans>";
-		Diagnostic d = d(3, 2, 3, 15, XMLSchemaErrorCode.cvc_complex_type_2_3);
+		Diagnostic d = d(3, 2, 3, 15, XMLSchemaErrorCode.cvc_complex_type_2_3, "Element \'bean\' cannot contain text content.\nThe content type is defined as element-only.\n\nCode:");
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, ca(d, te(3, 2, 3, 15, "")));
 	}
@@ -50,9 +62,30 @@ public class XMLSchemaDiagnosticsTest {
 				"		<property></property>\r\n" + //
 				"	</bean>\r\n" + //
 				"</beans>";
-		Diagnostic d = d(3, 3, 3, 11, XMLSchemaErrorCode.cvc_complex_type_4);
+		Diagnostic d = d(3, 3, 3, 11, XMLSchemaErrorCode.cvc_complex_type_4, "Attribute:\n - name\nis required in element:\n - property\n\nCode:");
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, ca(d, te(3, 11, 3, 11, " name=\"\"")));
+	}
+
+	@Test
+	public void cvc_type_4_Multiple_attributes() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
+				"<invoice xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				" xsi:noNamespaceSchemaLocation=\"src/test/resources/xsd/invoice.xsd\">\r\n" + //
+				"  <date>2017-11-30</date>\r\n" + // 
+				"  <number>2</number>\r\n" + //
+				"  <products>\r\n" + //
+				"  	<product />\r\n" + // <- error
+				"  </products>\r\n" + //
+				"  <payments>\r\n" + //
+				"  	<payment amount=\"1\" method=\"credit\"/>\r\n" + //
+				"  </payments>\r\n" + //
+				"</invoice>";
+		Diagnostic d2 = d(6, 4, 6, 11, XMLSchemaErrorCode.cvc_complex_type_4, "Attribute:\n - description\nis required in element:\n - product\n\nCode:");
+		Diagnostic d1 = d(6, 4, 6, 11, XMLSchemaErrorCode.cvc_complex_type_4, "Attribute:\n - price\nis required in element:\n - product\n\nCode:");
+		testDiagnosticsFor(xml, d1, d2);
+
+		testCodeActionsFor(xml, d1, ca(d1, te(6, 11, 6, 11, " price=\"\" description=\"\"")));
 	}
 
 	@Test
@@ -63,7 +96,9 @@ public class XMLSchemaDiagnosticsTest {
 				+ //
 				"	<XXX></XXX>\r\n" + // <- error
 				"</project>";
-		testDiagnosticsFor(xml, d(3, 2, 3, 5, XMLSchemaErrorCode.cvc_complex_type_2_4_a));
+
+		String message = "Invalid element name:\n - XXX\n\nOne of the following is expected:\n - modelVersion\n - parent\n - groupId\n - artifactId\n - version\n - packaging\n - name\n - description\n - url\n - inceptionYear\n - organization\n - licenses\n - developers\n - contributors\n - mailingLists\n - prerequisites\n - modules\n - scm\n - issueManagement\n - ciManagement\n - distributionManagement\n - properties\n - dependencyManagement\n - dependencies\n - repositories\n - pluginRepositories\n - build\n - reports\n - reporting\n - profiles\n\nError indicated by:\n {http://maven.apache.org/POM/4.0.0}\nwith code:";
+		testDiagnosticsFor(xml, d(3, 2, 3, 5, XMLSchemaErrorCode.cvc_complex_type_2_4_a, message));
 	}
 
 	@Test
@@ -267,7 +302,7 @@ public class XMLSchemaDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, ca(d, te(5, 25, 5, 38, "/>")));
 	}
-
+	
 	@Test
 	public void cvc_complex_type_2_1WithLinefeed() throws Exception {
 		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
@@ -278,7 +313,7 @@ public class XMLSchemaDiagnosticsTest {
 				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + //
 				"	<alias name=\"\" alias=\"\" >\r\n   \r\n</alias>\r\n" + // <- error
 				"</beans>";
-		Diagnostic d = d(5, 2, 5, 7, XMLSchemaErrorCode.cvc_complex_type_2_1);
+		Diagnostic d = d(5, 26, 7, 0, XMLSchemaErrorCode.cvc_complex_type_2_1);
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, ca(d, te(5, 25, 7, 8, "/>")));
 	}
@@ -293,7 +328,7 @@ public class XMLSchemaDiagnosticsTest {
 				+ //
 				"  \r\n" + //
 				"</edmx:Edmx>";
-		Diagnostic d = d(1, 1, 1, 10, XMLSchemaErrorCode.cvc_complex_type_2_4_b);
+		Diagnostic d = d(1, 1, 1, 10, XMLSchemaErrorCode.cvc_complex_type_2_4_b, "Child elements are missing from element:\n - edmx:Edmx\n\nThe following elements are expected:\n - Reference\n - DataServices\n\nError indicated by\n {http://docs.oasis-open.org/odata/ns/edmx\":Reference, \"http://docs.oasis-open.org/odata/ns/edmx}\nwith code:");
 		testDiagnosticsFor(xml, d);
 	}
 
@@ -310,6 +345,43 @@ public class XMLSchemaDiagnosticsTest {
 				"</xs:schema>";
 		XMLAssert.testDiagnosticsFor(xml, d(7, 3, 7, 17, XMLSchemaErrorCode.cvc_elt_3_1));
 
+	}
+
+	@Test
+	public void cvc_type_3_2_1() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
+				"<invoice xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				" xsi:noNamespaceSchemaLocation=\"src/test/resources/xsd/invoice.xsd\">\r\n" + //
+				"  <date xsi:nil=\"true\">2017-11-30</date>\r\n" + // <- error
+				"  <number>0</number>\r\n" + //
+				"  <products>\r\n" + //
+				"  	<product price=\"1\" description=\"\"/>\r\n" + //
+				"  </products>\r\n" + //
+				"  <payments>\r\n" + //
+				"  	<payment amount=\"1\" method=\"credit\"/>\r\n" + //
+				"  </payments>\r\n" + //
+				"</invoice>";
+		testDiagnosticsFor(xml,	d(3, 23, 3, 33, XMLSchemaErrorCode.cvc_elt_3_2_1));
+	}
+
+	@Test
+	public void cvc_type_3_1_2() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
+				"<invoice xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				" xsi:noNamespaceSchemaLocation=\"src/test/resources/xsd/invoice.xsd\">\r\n" + //
+				"  <date>2017-11-30</date>\r\n" + // 
+				"  <number><a></a></number>\r\n" + //<- error
+				"  <products>\r\n" + //
+				"  	<product price=\"1\" description=\"\"/>\r\n" + //
+				"  </products>\r\n" + //
+				"  <payments>\r\n" + //
+				"  	<payment amount=\"1\" method=\"credit\"/>\r\n" + //
+				"  </payments>\r\n" + //
+				"</invoice>";
+		testDiagnosticsFor(xml,	
+					d(4, 3, 4, 9, XMLSchemaErrorCode.cvc_type_3_1_2),
+					d(4,10,4,17, XMLSchemaErrorCode.cvc_datatype_valid_1_2_1),
+					d(4,10,4,17, XMLSchemaErrorCode.cvc_type_3_1_3));
 	}
 
 	private static void testDiagnosticsFor(String xml, Diagnostic... expected) {

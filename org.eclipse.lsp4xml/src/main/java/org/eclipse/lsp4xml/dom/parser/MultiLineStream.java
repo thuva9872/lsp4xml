@@ -11,16 +11,14 @@
 package org.eclipse.lsp4xml.dom.parser;
 
 import static org.eclipse.lsp4xml.dom.parser.Constants._CAR;
+import static org.eclipse.lsp4xml.dom.parser.Constants._CSB;
 import static org.eclipse.lsp4xml.dom.parser.Constants._LAN;
 import static org.eclipse.lsp4xml.dom.parser.Constants._LFD;
 import static org.eclipse.lsp4xml.dom.parser.Constants._NWL;
+import static org.eclipse.lsp4xml.dom.parser.Constants._OSB;
+import static org.eclipse.lsp4xml.dom.parser.Constants._RAN;
 import static org.eclipse.lsp4xml.dom.parser.Constants._TAB;
 import static org.eclipse.lsp4xml.dom.parser.Constants._WSP;
-import static org.eclipse.lsp4xml.dom.parser.Constants._LAN;
-import static org.eclipse.lsp4xml.dom.parser.Constants._RAN;
-import static org.eclipse.lsp4xml.dom.parser.Constants._OSB;
-import static org.eclipse.lsp4xml.dom.parser.Constants._CSB;
-
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +30,7 @@ import java.util.regex.Pattern;
  * Multi line stream.
  *
  */
-class MultiLineStream {
+public class MultiLineStream {
 
 	private static final Predicate<Integer> WHITESPACE_PREDICATE = ch -> {
 		return ch == _WSP || ch == _TAB || ch == _NWL || ch == _LFD || ch == _CAR;
@@ -176,15 +174,6 @@ class MultiLineStream {
 			this.position = match.end(1);
 			return match.group(1);
 		}
-		return "";
-	}
-
-	public String advanceUntilRegExp(Pattern regex) {
-		String str = this.source.substring(this.position);
-		/*
-		 * TODO let match = str.match(regex); if (match) { this.position = this.position
-		 * + match.index!; return match[0]; } else { this.goToEnd(); }
-		 */
 		return "";
 	}
 
@@ -333,6 +322,8 @@ class MultiLineStream {
 		if (matcher == null) {
 			matcher = regex.matcher(source);
 			regexpCache.put(regex, matcher);
+		} else {
+			matcher.reset(); // Cached regex caused issues, needed to reset it.
 		}
 		return matcher;
 	}

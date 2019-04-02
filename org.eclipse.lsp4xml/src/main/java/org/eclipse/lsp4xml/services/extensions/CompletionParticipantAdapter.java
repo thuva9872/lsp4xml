@@ -11,6 +11,7 @@
 package org.eclipse.lsp4xml.services.extensions;
 
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4xml.settings.SharedSettings;
 
 /**
  * Completion participant adapter.
@@ -31,13 +32,13 @@ public class CompletionParticipantAdapter implements ICompletionParticipant {
 
 	@Override
 	public void onAttributeName(boolean generateValue, Range fullRange, ICompletionRequest request,
-			ICompletionResponse response) throws Exception {
+			ICompletionResponse response, SharedSettings settings) throws Exception {
 		// Do nothing
 	}
 
 	@Override
 	public void onAttributeValue(String valuePrefix, Range fullRange, boolean addQuotes, ICompletionRequest request,
-			ICompletionResponse response) throws Exception {
+			ICompletionResponse response, SharedSettings settings) throws Exception {
 		// Do nothing
 	}
 

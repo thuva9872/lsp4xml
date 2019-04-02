@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.lsp4xml.commons.SnippetsBuilder;
 import org.eclipse.lsp4xml.extensions.contentmodel.model.CMAttributeDeclaration;
 import org.eclipse.lsp4xml.extensions.contentmodel.model.CMElementDeclaration;
+import org.eclipse.lsp4xml.settings.SharedSettings;
 import org.eclipse.lsp4xml.settings.XMLFormattingOptions;
 import org.eclipse.lsp4xml.utils.XMLBuilder;
 
@@ -35,7 +36,7 @@ public class XMLGenerator {
 
 	/**
 	 * XML generator constructor.
-	 *
+	 * 
 	 * @param formattingOptions  the formatting options (uses spaces or tabs for
 	 *                           indentation, etc)
 	 * @param whitespacesIndent  the whitespaces to use to indent XML children
@@ -46,12 +47,12 @@ public class XMLGenerator {
 	 *                           otherwise.
 	 */
 	public XMLGenerator(XMLFormattingOptions formattingOptions, String whitespacesIndent, String lineDelimiter,
-						boolean canSupportSnippets, int maxLevel) {
+			boolean canSupportSnippets, int maxLevel) {
 		this(formattingOptions, true, whitespacesIndent, lineDelimiter, canSupportSnippets, maxLevel);
 	}
 
 	public XMLGenerator(XMLFormattingOptions formattingOptions, boolean autoCloseTags, String whitespacesIndent,
-						String lineDelimiter, boolean canSupportSnippets, int maxLevel) {
+			String lineDelimiter, boolean canSupportSnippets, int maxLevel) {
 		this.formattingOptions = formattingOptions;
 		this.autoCloseTags = autoCloseTags;
 		this.whitespacesIndent = whitespacesIndent;
@@ -65,7 +66,7 @@ public class XMLGenerator {
 
 	/**
 	 * Returns the XML generated from the given element declaration.
-	 *
+	 * 
 	 * @param elementDeclaration
 	 * @param prefix
 	 * @return the XML generated from the given element declaration.
@@ -80,7 +81,7 @@ public class XMLGenerator {
 	}
 
 	private int generate(CMElementDeclaration elementDeclaration, String prefix, int level, int snippetIndex,
-						 XMLBuilder xml, List<CMElementDeclaration> generatedElements) {
+			XMLBuilder xml, List<CMElementDeclaration> generatedElements) {
 		if (generatedElements.contains(elementDeclaration)) {
 			return snippetIndex;
 		}
@@ -136,7 +137,7 @@ public class XMLGenerator {
 	}
 
 	private int generate(Collection<CMAttributeDeclaration> attributes, int level, int snippetIndex, XMLBuilder xml,
-						 String tagName) {
+			String tagName) {
 		int attributeIndex = 0;
 		List<CMAttributeDeclaration> requiredAttributes = new ArrayList<CMAttributeDeclaration>();
 		for (CMAttributeDeclaration att : attributes) {
@@ -154,9 +155,9 @@ public class XMLGenerator {
 			String value = generateAttributeValue(defaultValue, enumerationValues, canSupportSnippets, snippetIndex,
 					false);
 			if (attributesSize != 1) {
-				xml.addAttribute(attributeDeclaration.getName(), value, attributeIndex, level, tagName);
+				xml.addAttribute(attributeDeclaration.getName(), value, level, true);
 			} else {
-				xml.addSingleAttribute(attributeDeclaration.getName(), value);
+				xml.addSingleAttribute(attributeDeclaration.getName(), value, true);
 			}
 			attributeIndex++;
 		}
@@ -169,10 +170,24 @@ public class XMLGenerator {
 	 * Can create an enumerated TextEdit if given a collection of values.
 	 */
 	public static String generateAttributeValue(String defaultValue, Collection<String> enumerationValues,
-												boolean canSupportSnippets, int snippetIndex, boolean withQuote) {
+			boolean canSupportSnippets, int snippetIndex, boolean withQuote) {
+		return generateAttributeValue(defaultValue, enumerationValues, canSupportSnippets, snippetIndex, withQuote, null);
+	}
+
+	/**
+	 * Creates the string value for a CompletionItem TextEdit
+	 *
+	 * Can create an enumerated TextEdit if given a collection of values.
+	 */
+	public static String generateAttributeValue(String defaultValue, Collection<String> enumerationValues,
+			boolean canSupportSnippets, int snippetIndex, boolean withQuote, SharedSettings settings) {
 		StringBuilder value = new StringBuilder();
+		String quotation = "\"";
 		if (withQuote) {
-			value.append("=\"");
+			if(settings != null) {
+				quotation = settings.formattingSettings.getQuotationAsString();
+			}
+			value.append("=" + quotation);
 		}
 		if (!canSupportSnippets) {
 			if (defaultValue != null) {
@@ -191,7 +206,7 @@ public class XMLGenerator {
 			}
 		}
 		if (withQuote) {
-			value.append("\"");
+			value.append(quotation);
 			if (canSupportSnippets) {
 				SnippetsBuilder.tabstops(0, value); // "$0"
 			}

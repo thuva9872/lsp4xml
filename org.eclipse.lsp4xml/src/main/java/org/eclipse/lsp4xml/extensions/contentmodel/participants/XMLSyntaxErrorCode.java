@@ -47,7 +47,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 	InvalidCommentStart, LessthanInAttValue, MarkupEntityMismatch, MarkupNotRecognizedInContent,
 	NameRequiredInReference, OpenQuoteExpected, PITargetRequired, PseudoAttrNameExpected, QuoteRequiredInXMLDecl,
 	SDDeclInvalid, SpaceRequiredBeforeEncodingInXMLDecl, SpaceRequiredBeforeStandalone, SpaceRequiredInPI,
-	VersionInfoRequired, VersionNotSupported, XMLDeclUnterminated, CustomETag; // https://wiki.xmldation.com/Support/Validator/EqRequiredInAttribute
+	VersionInfoRequired, VersionNotSupported, XMLDeclUnterminated, CustomETag, PrematureEOF; // https://wiki.xmldation.com/Support/Validator/EqRequiredInAttribute
 
 	private final String code;
 
@@ -127,7 +127,16 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			return XMLPositionUtility.selectAttributeValueByGivenValueAt(attrValue, offset, document);
 		}
 		case ETagUnterminated:
-			return XMLPositionUtility.selectPreviousEndTag(offset - 1, document);
+			/**
+			 * Cases:
+			 * 
+			 * <a> </b>
+			 * 
+			 * <a> <b> </b> </c>
+			 * 
+			 * <a> <a> </a> </b
+			 */
+			return XMLPositionUtility.selectPreviousNodesEndTag(offset, document);
 		case CustomETag:
 			return XMLPositionUtility.selectEndTag(offset, document);
 		case ETagRequired: {
@@ -164,6 +173,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			int start = selectCurrentTagOffset(offset, document) + 1;
 			int end = offset + 1;
 			return XMLPositionUtility.createRange(start, end, document);
+		case PrematureEOF:
 		case XMLDeclUnterminated:
 			break;
 		default:

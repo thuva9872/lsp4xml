@@ -26,7 +26,7 @@ public class XMLScanner implements Scanner {
 	TokenType tokenType;
 	String tokenError;
 
-	boolean hasSpaceAfterTag;
+	
 	String lastTag;
 	String lastAttributeName;
 	String lastTypeValue;
@@ -243,7 +243,6 @@ public class XMLScanner implements Scanner {
 			lastTypeValue = null;
 			lastAttributeName = null;
 			if (lastTag.length() > 0) {
-				hasSpaceAfterTag = false;
 				state = ScannerState.WithinTag;
 				return finishToken(offset, TokenType.StartTag);
 			}
@@ -262,24 +261,24 @@ public class XMLScanner implements Scanner {
 
 		case WithinTag:
 			if (stream.skipWhitespace()) {
-				hasSpaceAfterTag = true; // remember that we have seen a whitespace
 				return finishToken(offset, TokenType.Whitespace);
 			}
 			if (stream.advanceIfChars(_QMA, _RAN)) { // ?>
 				state = ScannerState.WithinContent;
 				return finishToken(offset, TokenType.PrologEnd);
 			}
-			if (hasSpaceAfterTag) {
+			
 				lastAttributeName = nextAttributeName();
 				if (lastAttributeName.length() > 0) {
 					state = ScannerState.AfterAttributeName;
-					hasSpaceAfterTag = false;
 					return finishToken(offset, TokenType.AttributeName);
 				}
-			}
-			if (stream.advanceIfChars(_FSL, _RAN)) { // />
+			
+			if (stream.advanceIfChar(_FSL)) { // /
 				state = ScannerState.WithinContent;
-				return finishToken(offset, TokenType.StartTagSelfClose);
+				if(stream.advanceIfChar(_RAN)) { // >
+					return finishToken(offset, TokenType.StartTagSelfClose);
+				}
 			}
 			if (stream.advanceIfChar(_RAN)) { // >
 				state = ScannerState.WithinContent;
@@ -294,7 +293,6 @@ public class XMLScanner implements Scanner {
 
 		case AfterAttributeName:
 			if (stream.skipWhitespace()) {
-				hasSpaceAfterTag = true;
 				return finishToken(offset, TokenType.Whitespace);
 			}
 
@@ -315,25 +313,10 @@ public class XMLScanner implements Scanner {
 					lastTypeValue = attributeValue;
 				}
 				state = ScannerState.WithinTag;
-				hasSpaceAfterTag = false;
-				return finishToken(offset, TokenType.AttributeValue);
-			}
-			int ch = stream.peekChar();
-			if (ch == _SQO || ch == _DQO || ch == _SIQ) { // " || " || '
-				stream.advance(1); // consume quote
-				if (stream.advanceUntilChar(ch)) {
-					stream.advance(1); // consume quote
-				}
-				if ("type".equals(lastAttributeName)) {
-					lastTypeValue = stream.getSource().substring(offset + 1, stream.pos() - 1);
-				}
-				state = ScannerState.WithinTag;
-				hasSpaceAfterTag = false;
 				return finishToken(offset, TokenType.AttributeValue);
 			}
 			state = ScannerState.WithinTag;
-			hasSpaceAfterTag = false;
-			return internalScan(); // no advance yet - jump to WithinTag
+			return internalScan();
 
 		// DTD
 
@@ -866,6 +849,8 @@ public class XMLScanner implements Scanner {
 
 			state = ScannerState.DTDUnrecognizedParameters;
 			return internalScan();
+
+		default:
 		}
 
 		

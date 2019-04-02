@@ -29,6 +29,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4xml.commons.BadLocationException;
 import org.eclipse.lsp4xml.commons.TextDocument;
+import org.eclipse.lsp4xml.customservice.AutoCloseTagResponse;
 import org.eclipse.lsp4xml.dom.DOMDocument;
 import org.eclipse.lsp4xml.dom.DOMElement;
 import org.eclipse.lsp4xml.dom.DOMNode;
@@ -41,7 +42,9 @@ import org.eclipse.lsp4xml.services.extensions.ICompletionParticipant;
 import org.eclipse.lsp4xml.services.extensions.ICompletionRequest;
 import org.eclipse.lsp4xml.services.extensions.ICompletionResponse;
 import org.eclipse.lsp4xml.services.extensions.XMLExtensionsRegistry;
+import org.eclipse.lsp4xml.settings.SharedSettings;
 import org.eclipse.lsp4xml.settings.XMLFormattingOptions;
+import org.eclipse.lsp4xml.utils.StringUtils;
 
 /**
  * XML completions support.
@@ -58,13 +61,12 @@ class XMLCompletions {
 		this.extensionsRegistry = extensionsRegistry;
 	}
 
-	public CompletionList doComplete(DOMDocument xmlDocument, Position position, CompletionSettings completionSettings,
-			XMLFormattingOptions formattingSettings) {
+	public CompletionList doComplete(DOMDocument xmlDocument, Position position,
+			SharedSettings settings) {
 		CompletionResponse completionResponse = new CompletionResponse();
 		CompletionRequest completionRequest = null;
 		try {
-			completionRequest = new CompletionRequest(xmlDocument, position, completionSettings, formattingSettings,
-					extensionsRegistry);
+			completionRequest = new CompletionRequest(xmlDocument, position, settings, extensionsRegistry);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of CompletionRequest failed", e);
 			return completionResponse;
@@ -105,7 +107,7 @@ class XMLCompletions {
 			case AttributeName:
 				if (scanner.getTokenOffset() <= offset && offset <= scanner.getTokenEnd()) {
 					collectAttributeNameSuggestions(scanner.getTokenOffset(), scanner.getTokenEnd(), completionRequest,
-							completionResponse);
+							completionResponse, settings);
 					return completionResponse;
 				}
 				completionRequest.setCurrentAttributeName(scanner.getTokenText());
@@ -113,14 +115,14 @@ class XMLCompletions {
 			case DelimiterAssign:
 				if (scanner.getTokenEnd() == offset) {
 					int endPos = scanNextForEndPos(offset, scanner, TokenType.AttributeValue);
-					collectAttributeValueSuggestions(offset, endPos, completionRequest, completionResponse);
+					collectAttributeValueSuggestions(offset, endPos, completionRequest, completionResponse, settings);
 					return completionResponse;
 				}
 				break;
 			case AttributeValue:
 				if (scanner.getTokenOffset() <= offset && offset <= scanner.getTokenEnd()) {
 					collectAttributeValueSuggestions(scanner.getTokenOffset(), scanner.getTokenEnd(), completionRequest,
-							completionResponse);
+							completionResponse, settings);
 					return completionResponse;
 				}
 				break;
@@ -134,11 +136,11 @@ class XMLCompletions {
 						return completionResponse;
 					case WithinTag:
 					case AfterAttributeName:
-						collectAttributeNameSuggestions(scanner.getTokenEnd(), completionRequest, completionResponse);
+						collectAttributeNameSuggestions(scanner.getTokenEnd(), completionRequest, completionResponse, settings);
 						return completionResponse;
 					case BeforeAttributeValue:
 						collectAttributeValueSuggestions(scanner.getTokenEnd(), offset, completionRequest,
-								completionResponse);
+								completionResponse, settings);
 						return completionResponse;
 					case AfterOpeningEndTag:
 						collectCloseTagSuggestions(scanner.getTokenOffset() - 1, false, offset, completionRequest,
@@ -301,10 +303,28 @@ class XMLCompletions {
 		return (node.getParentNode() != null && node.getParentNode().isDoctype());
 	}
 
-	public String doTagComplete(DOMDocument xmlDocument, Position position) {
+	public boolean isBalanced(DOMNode node) {
+		if(node.isClosed() == false) {
+			return false;
+		}
+		String name = node.getNodeName();
+		DOMNode parent = node.getParentElement();
+		while(parent != null && name.equals(parent.getNodeName())) {
+			if(parent.isClosed() == false) {
+				return false;
+			}
+			parent = parent.getParentElement();
+		}
+		return true;
+	}
+
+	public AutoCloseTagResponse doTagComplete(DOMDocument xmlDocument, Position position) {
 		int offset;
 		try {
 			offset = xmlDocument.offsetAt(position);
+			if(offset - 2 < 0) { //There is not enough content for autoClose
+				return null;
+			}
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "doTagComplete failed", e);
 			return null;
@@ -313,37 +333,92 @@ class XMLCompletions {
 			return null;
 		}
 		char c = xmlDocument.getText().charAt(offset - 1);
-		if (c == '>') {
+		char cBefore = xmlDocument.getText().charAt(offset - 2);
+		String snippet = null;
+		if (c == '>') { // Case: <a>|
 			DOMNode node = xmlDocument.findNodeBefore(offset);
-			if (node != null && node.isElement() && ((DOMElement) node).getTagName() != null
-					&& !isEmptyElement(((DOMElement) node).getTagName()) && node.getStart() < offset
-					&& (!((DOMElement) node).hasEndTag() || ((DOMElement) node).getEndTagOpenOffset() > offset)) {
-				Scanner scanner = XMLScanner.createScanner(xmlDocument.getText(), node.getStart());
-				TokenType token = scanner.scan();
-				while (token != TokenType.EOS && scanner.getTokenEnd() <= offset) {
-					if (token == TokenType.StartTagClose && scanner.getTokenEnd() == offset) {
-						return "$0</" + ((DOMElement) node).getTagName() + ">";
-					}
-					token = scanner.scan();
-				}
+			DOMElement element = ((DOMElement) node);
+			if (node != null 
+					&& node.isElement() 
+					&& !element.isSelfClosed() 
+					&& element.getTagName() != null
+					&& !isEmptyElement(((DOMElement) node).getTagName()) 
+					&& node.getStart() < offset
+					&& (!element.hasEndTag() || 
+						(element.getTagName().equals(node.getParentNode().getNodeName()) && !isBalanced(node)))) {
+				snippet = "$0</" + ((DOMElement) node).getTagName() + ">";
+				
 			}
-		} else if (c == '/') {
+		} else if (cBefore == '<' && c == '/') { // Case: <a> </|
 			DOMNode node = xmlDocument.findNodeBefore(offset);
 			while (node != null && node.isClosed()) {
 				node = node.getParentNode();
 			}
 			if (node != null && node.isElement() && ((DOMElement) node).getTagName() != null) {
-				Scanner scanner = XMLScanner.createScanner(xmlDocument.getText(), node.getStart());
-				TokenType token = scanner.scan();
-				while (token != TokenType.EOS && scanner.getTokenEnd() <= offset) {
-					if (token == TokenType.EndTagOpen && scanner.getTokenEnd() == offset) {
-						return ((DOMElement) node).getTagName() + ">";
+				snippet = ((DOMElement) node).getTagName() + ">$0";
+			}
+		} else {
+			DOMNode node = xmlDocument.findNodeBefore(offset);
+			if(node.isElement() && node.getNodeName() != null) {
+				DOMElement element1 = (DOMElement) node;
+				Integer slashOffset = element1.endsWith('/', offset);
+				Position end = null;
+				if(slashOffset != null) { //The typed characted was '/'
+					Integer closeBracket = element1.isNextChar('>', offset); // After the slash is a close bracket
+					
+					// Case: <a/|
+					if(closeBracket == null) { // no '>' after slash
+						snippet = ">$0";
+						if(element1.hasEndTag()) { // Case: <a/| </a>
+							try {
+								end = xmlDocument.positionAt(element1.getEnd());
+							} catch (BadLocationException e) {
+								return null;
+							}
+						}
+					} 
+					else {
+						DOMNode nextSibling = node.getNextSibling();
+						if(nextSibling != null && nextSibling.isElement()){ // Case: <a/|></a>
+							DOMElement element2 = (DOMElement) nextSibling;
+							if(!element2.hasStartTag() && node.getNodeName().equals(element2.getNodeName())) {
+								try {
+									snippet = ">$0";
+									end = xmlDocument.positionAt(element2.getEnd());
+								} catch (BadLocationException e) {
+									return null;
+								}
+							}
+						}
+						else if(nextSibling == null) { // Case: <a> <a/|> </a> </a>
+							DOMElement parentElement = node.getParentElement();
+							if(parentElement != null && node.getNodeName().equals(parentElement.getTagName())) {
+								DOMNode nodeAfterParent = parentElement.getNextSibling();
+								if(nodeAfterParent != null && nodeAfterParent.isElement()) {
+									DOMElement elementAfterParent = (DOMElement) nodeAfterParent;
+									if(parentElement.getTagName().equals(elementAfterParent.getTagName())
+										 && !elementAfterParent.hasStartTag()) {
+										try {
+											snippet = ">$0";
+											end = xmlDocument.positionAt(parentElement.getEnd());
+										} catch (BadLocationException e) {
+											return null;
+										}	
+									}
+								}
+							}
+						}
 					}
-					token = scanner.scan();
+					if(snippet != null && end != null) {
+						return new AutoCloseTagResponse(snippet, new Range(position, end));
+					}
 				}
 			}
 		}
-		return null;
+		if(snippet == null) {
+			return null;
+		}
+		return new AutoCloseTagResponse(snippet);
 	}
 
 	// ---------------- Tags completion
@@ -619,13 +694,13 @@ class XMLCompletions {
 	}
 
 	private void collectAttributeNameSuggestions(int nameStart, CompletionRequest completionRequest,
-			CompletionResponse completionResponse) {
+			CompletionResponse completionResponse, SharedSettings settings) {
 		collectAttributeNameSuggestions(nameStart, completionRequest.getOffset(), completionRequest,
-				completionResponse);
+				completionResponse, settings);
 	}
 
 	private void collectAttributeNameSuggestions(int nameStart, int nameEnd, CompletionRequest completionRequest,
-			CompletionResponse completionResponse) {
+			CompletionResponse completionResponse, SharedSettings settings) {
 		int replaceEnd = completionRequest.getOffset();
 		String text = completionRequest.getXMLDocument().getText();
 		while (replaceEnd < nameEnd && text.charAt(replaceEnd) != '<') { // < is a valid attribute name character, but
@@ -638,7 +713,7 @@ class XMLCompletions {
 			boolean generateValue = !isFollowedBy(text, nameEnd, ScannerState.AfterAttributeName,
 					TokenType.DelimiterAssign);
 			for (ICompletionParticipant participant : getCompletionParticipants()) {
-				participant.onAttributeName(generateValue, range, completionRequest, completionResponse);
+				participant.onAttributeName(generateValue, range, completionRequest, completionResponse, settings);
 			}
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "While performing Completions, getReplaceRange() was given a bad Offset location",
@@ -649,13 +724,15 @@ class XMLCompletions {
 	}
 
 	private void collectAttributeValueSuggestions(int valueStart, int valueEnd, CompletionRequest completionRequest,
-			CompletionResponse completionResponse) {
+			CompletionResponse completionResponse, SharedSettings settings) {
 		Range range = null;
 		boolean addQuotes = false;
 		String valuePrefix;
 		int offset = completionRequest.getOffset();
 		String text = completionRequest.getXMLDocument().getText();
-		if (offset > valueStart && offset <= valueEnd && isQuote(text.charAt(valueStart))) {
+		
+		// Adjusts range to handle if quotations for the value exist
+		if (offset > valueStart && offset <= valueEnd && StringUtils.isQuote(text.charAt(valueStart))) {
 			// inside quoted attribute
 			int valueContentStart = valueStart + 1;
 			int valueContentEnd = valueEnd;
@@ -692,7 +769,7 @@ class XMLCompletions {
 				Range fullRange = getReplaceRange(valueStart, valueEnd, completionRequest);
 				for (ICompletionParticipant participant : completionParticipants) {
 					participant.onAttributeValue(valuePrefix, fullRange, addQuotes, completionRequest,
-							completionResponse);
+							completionResponse, settings);
 				}
 			} catch (BadLocationException e) {
 				LOGGER.log(Level.SEVERE,
@@ -807,10 +884,6 @@ class XMLCompletions {
 		return extensionsRegistry.getCompletionParticipants();
 	}
 
-	// Utilities class.
-	private static boolean isQuote(char c) {
-		return c == '\'' || c == '"';
-	}
 
 	private static boolean isFollowedBy(String s, int offset, ScannerState intialState, TokenType expectedToken) {
 		return getOffsetFollowedBy(s, offset, intialState, expectedToken) != -1;
