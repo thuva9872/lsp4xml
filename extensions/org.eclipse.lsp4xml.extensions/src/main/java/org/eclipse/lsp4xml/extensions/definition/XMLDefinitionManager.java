@@ -1,6 +1,7 @@
 package org.eclipse.lsp4xml.extensions.definition;
 
 import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4xml.commons.WorkspaceFolders;
 import org.eclipse.lsp4xml.dom.*;
 import org.eclipse.lsp4xml.extensions.definition.utils.DefinitionSource;
 import org.eclipse.lsp4xml.extensions.definition.utils.WorkspaceDocumentException;
@@ -65,7 +66,7 @@ public class XMLDefinitionManager {
                 if (targetedElement != null) {
                     collector.accept(targetedElement);
                 }else {
-                    List<WorkspaceFolder> workspaceFolderList = SynapseWorkspace.getInstance().getWorkspaceFolders();
+                    List<WorkspaceFolder> workspaceFolderList = WorkspaceFolders.getInstance().getWorkspaceFolders();
 
                     //assumption: akk opened workspaceFolders are synapse workspaces (i.e: WSO2/EnterpriseIntegrator/6.4.0/repository/deployment/server/synapse-config/default)
                     if (workspaceFolderList.size() > 0) {

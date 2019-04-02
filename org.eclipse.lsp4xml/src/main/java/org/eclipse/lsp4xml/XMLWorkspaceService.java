@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import org.eclipse.lsp4xml.utils.SynapseWorkspace;
+import org.eclipse.lsp4xml.commons.WorkspaceFolders;
 
 /**
  * XML workspace service.
@@ -24,9 +24,11 @@ import org.eclipse.lsp4xml.utils.SynapseWorkspace;
 public class XMLWorkspaceService implements WorkspaceService {
 
 	private final XMLLanguageServer xmlLanguageServer;
+	private final WorkspaceFolders workspaceFolders;
 
 	public XMLWorkspaceService(XMLLanguageServer xmlLanguageServer) {
 		this.xmlLanguageServer = xmlLanguageServer;
+		this.workspaceFolders = WorkspaceFolders.getInstance();
 	}
 
 	@Override
@@ -47,16 +49,7 @@ public class XMLWorkspaceService implements WorkspaceService {
 
 	@Override
 	public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
-
-		if (params.getEvent().getAdded().size() > 0) {
-			for (int i = 0; i < params.getEvent().getAdded().size(); i++) {
-				SynapseWorkspace.getInstance().addWorkspaceFolder(params.getEvent().getAdded().get(i));
-			}
-		}else if(params.getEvent().getRemoved().size() > 0) {
-			for (int i = 0; i < params.getEvent().getRemoved().size(); i++) {
-				SynapseWorkspace.getInstance().removeWorkspaceFolder(params.getEvent().getRemoved().get(i));
-			}
-		}
+		workspaceFolders.didChangeWorkspaceFolders(params);
 	}
 
 }

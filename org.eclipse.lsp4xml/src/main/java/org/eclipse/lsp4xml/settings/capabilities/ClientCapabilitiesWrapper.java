@@ -97,6 +97,7 @@ public class ClientCapabilitiesWrapper {
 	public boolean isDidChangeWorkspaceFoldersSupported() {
 		return v3Supported && getWorkspace().getWorkspaceFolders();
 	}
+
 	public TextDocumentClientCapabilities getTextDocument() {
 		return this.capabilities.getTextDocument();
 	}

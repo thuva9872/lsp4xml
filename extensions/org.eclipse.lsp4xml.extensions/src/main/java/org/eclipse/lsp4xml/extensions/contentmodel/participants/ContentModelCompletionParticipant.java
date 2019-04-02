@@ -56,16 +56,16 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 				// XML is empty, in case of XML file associations, a XMl Schema/DTD can be bound
 				// check if it's root element (in the case of XML file associations, the link to
 				// XML Schema is done with pattern and not with XML root element)
-				CMDocument cmDocument = contentModelManager.findCMDocument(document, null);
+				CMDocument cmDocument = contentModelManager.findCMDocument(document);
 
 				CMElementDeclaration cmElement = ((CMXSDDocument) cmDocument).findElementDeclaration("definitions", "http://ws.apache.org/ns/synapse");
 				Collection<CMElementDeclaration> cmElements = cmElement.getElements();
 
-				Collection<CMElementDeclaration> newCMElements = new ArrayList<>(cmElements);
-				newCMElements.add(cmElement);
+//				Collection<CMElementDeclaration> newCMElements = new ArrayList<>(cmElements);
+//				newCMElements.add(cmElement);
 
 				if (cmDocument != null) {
-					fillWithChildrenElementDeclaration(parentElement, newCMElements, null, false, true, request, response);
+					fillWithChildrenElementDeclaration(parentElement, cmElements, null, false, true, request, response);
 				}
 				return;
 			}
@@ -87,7 +87,7 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 						continue;
 					}
 					String namespaceURI = parentElement.getNamespaceURI(prefix);
-					CMDocument cmDocument = contentModelManager.findCMDocument(parentElement, namespaceURI);
+					CMDocument cmDocument = contentModelManager.findCMDocument(parentElement);
 					if (cmDocument != null) {
 						fillWithChildrenElementDeclaration(parentElement, cmDocument.getElements(), prefix, true, false,
 								request, response);
