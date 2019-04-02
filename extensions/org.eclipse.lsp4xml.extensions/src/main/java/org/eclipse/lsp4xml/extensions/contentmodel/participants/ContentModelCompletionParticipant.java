@@ -34,6 +34,7 @@ import org.eclipse.lsp4xml.services.XSISchemaModel;
 import org.eclipse.lsp4xml.services.extensions.CompletionParticipantAdapter;
 import org.eclipse.lsp4xml.services.extensions.ICompletionRequest;
 import org.eclipse.lsp4xml.services.extensions.ICompletionResponse;
+import org.eclipse.lsp4xml.settings.SharedSettings;
 import org.eclipse.lsp4xml.uriresolver.CacheResourceDownloadingException;
 
 import java.util.*;
@@ -250,11 +251,7 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 
 	@Override
 	public void onAttributeName(boolean generateValue, Range fullRange, ICompletionRequest request,
-			ICompletionResponse response) throws Exception {
-		if (request.getXMLDocument().hasSchemaInstancePrefix()) {
-			XSISchemaModel.computeCompletionResponses(request, response, fullRange, request.getXMLDocument(),
-					generateValue);
-		}
+								ICompletionResponse response, SharedSettings settings) throws Exception {
 		// otherwise, manage completion based on XML Schema, DTD.
 		DOMElement parentElement = request.getNode().isElement() ? (DOMElement) request.getNode() : null;
 		if (parentElement == null) {
@@ -266,19 +263,19 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 			// Completion on attribute based on external grammar
 			CMElementDeclaration cmElement = contentModelManager.findCMElement(parentElement);
 			fillAttributesWithCMAttributeDeclarations(parentElement, fullRange, cmElement, canSupportSnippet,
-					generateValue, response);
+					generateValue, response, settings);
 			// Completion on attribute based on internal grammar
 			cmElement = contentModelManager.findInternalCMElement(parentElement);
 			fillAttributesWithCMAttributeDeclarations(parentElement, fullRange, cmElement, canSupportSnippet,
-					generateValue, response);
+					generateValue, response, settings);
 		} catch (CacheResourceDownloadingException e) {
 			// XML Schema, DTD is loading, ignore this error
 		}
 	}
 
 	private void fillAttributesWithCMAttributeDeclarations(DOMElement parentElement, Range fullRange,
-			CMElementDeclaration cmElement, boolean canSupportSnippet, boolean generateValue,
-			ICompletionResponse response) {
+														   CMElementDeclaration cmElement, boolean canSupportSnippet, boolean generateValue,
+														   ICompletionResponse response, SharedSettings settings) {
 		if (cmElement == null) {
 			return;
 		}
@@ -290,7 +287,7 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 			String attrName = cmAttribute.getName();
 			if (!parentElement.hasAttribute(attrName)) {
 				CompletionItem item = new AttributeCompletionItem(attrName, canSupportSnippet, fullRange, generateValue,
-						cmAttribute.getDefaultValue(), cmAttribute.getEnumerationValues());
+						cmAttribute.getDefaultValue(), cmAttribute.getEnumerationValues(), settings);
 				String documentation = cmAttribute.getDocumentation();
 				if (documentation != null) {
 					item.setDetail(documentation);
@@ -300,9 +297,10 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 		}
 	}
 
+
 	@Override
 	public void onAttributeValue(String valuePrefix, Range fullRange, boolean addQuotes, ICompletionRequest request,
-			ICompletionResponse response) throws Exception {
+								 ICompletionResponse response, SharedSettings settings) throws Exception {
 		DOMElement parentElement = request.getNode().isElement() ? (DOMElement) request.getNode() : null;
 		if (parentElement == null) {
 			return;

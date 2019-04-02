@@ -28,7 +28,6 @@ import java.util.Map;
  *
  */
 public enum XMLSchemaErrorCode implements IXMLErrorCode {
-
 	cvc_complex_type_2_3("cvc-complex-type.2.3"), // https://wiki.xmldation.com/Support/Validator/cvc-complex-type-2-3
 	cvc_complex_type_2_1("cvc-complex-type.2.1"), // https://wiki.xmldation.com/Support/Validator/cvc-complex-type-2-1
 	cvc_complex_type_2_4_a("cvc-complex-type.2.4.a"), // https://wiki.xmldation.com/Support/Validator/cvc-complex-type-2-4-a
@@ -41,8 +40,10 @@ public enum XMLSchemaErrorCode implements IXMLErrorCode {
 	cvc_datatype_valid_1_2_1("cvc-datatype-valid.1.2.1"), // https://wiki.xmldation.com/Support/Validator/cvc-datatype-valid-1-2-1
 	cvc_elt_1_a("cvc-elt.1.a"), // https://wiki.xmldation.com/Support/Validator/cvc-elt-1
 	cvc_elt_3_1("cvc-elt.3.1"), // https://wiki.xmldation.com/Support/Validator/cvc-elt-3-1
+	cvc_elt_3_2_1("cvc-elt.3.2.1"), //https://wiki.xmldation.com/Support/Validator/cvc-elt-3-2-1
 	cvc_elt_4_2("cvc-elt.4.2"), // https://wiki.xmldation.com/Support/Validator/cvc-elt-4-2
 	cvc_type_3_1_1("cvc-type.3.1.1"), // https://wiki.xmldation.com/Support/Validator/cvc-type-3-1-1
+	cvc_type_3_1_2("cvc-type.3.1.2"), // https://wiki.xmldation.com/Support/Validator/cvc-type-3-1-2
 	cvc_type_3_1_3("cvc-type.3.1.3"), // https://wiki.xmldation.com/Support/Validator/cvc-type-3-1-3,
 	cvc_attribute_3("cvc-attribute.3"), // https://wiki.xmldation.com/Support/Validator/cvc-attribute-3
 	cvc_enumeration_valid("cvc-enumeration-valid"), // https://wiki.xmldation.com/Support/Validator/cvc-enumeration-valid
@@ -51,7 +52,9 @@ public enum XMLSchemaErrorCode implements IXMLErrorCode {
 	cvc_maxExclusive_valid("cvc-maxExclusive-valid"), // https://wiki.xmldation.com/Support/validator/cvc-maxexclusive-valid
 	cvc_maxInclusive_valid("cvc-maxInclusive-valid"), // https://wiki.xmldation.com/Support/validator/cvc-maxinclusive-valid
 	cvc_minExclusive_valid("cvc-minExclusive-valid"), // https://wiki.xmldation.com/Support/validator/cvc-minexclusive-valid
-	cvc_minInclusive_valid("cvc-minInclusive-valid"); // https://wiki.xmldation.com/Support/validator/cvc-mininclusive-valid
+	cvc_minInclusive_valid("cvc-minInclusive-valid"), // https://wiki.xmldation.com/Support/validator/cvc-mininclusive-valid
+	TargetNamespace_2("TargetNamespace.2"),
+	schema_reference_4("schema_reference.4"); //
 
 	private final String code;
 
@@ -91,7 +94,7 @@ public enum XMLSchemaErrorCode implements IXMLErrorCode {
 
 	/**
 	 * Create the LSP range from the SAX error.
-	 * 
+	 *
 	 * @param location
 	 * @param key
 	 * @param arguments
@@ -99,68 +102,72 @@ public enum XMLSchemaErrorCode implements IXMLErrorCode {
 	 * @return the LSP range from the SAX error.
 	 */
 	public static Range toLSPRange(XMLLocator location, XMLSchemaErrorCode code, Object[] arguments,
-			DOMDocument document) {
+								   DOMDocument document) {
 		int offset = location.getCharacterOffset() - 1;
 		// adjust positions
 		switch (code) {
-		case cvc_complex_type_2_3:
-			return XMLPositionUtility.selectFirstNonWhitespaceText(offset, document);
-		case cvc_complex_type_2_4_a:
-		case cvc_complex_type_2_4_b:
-		case cvc_complex_type_2_4_c:
-		case cvc_complex_type_2_4_d:
-		case cvc_elt_1_a:
-		case cvc_complex_type_4:
-			return XMLPositionUtility.selectStartTag(offset, document);
-		case cvc_complex_type_3_2_2: {
-			String attrName = (String) arguments[1];
-			return XMLPositionUtility.selectAttributeNameFromGivenNameAt(attrName, offset, document);
-		}
-		case cvc_elt_3_1: {
-			String namespaceAntAttrName = (String) arguments[1]; // http://www.w3.org/2001/XMLSchema-instance,nil			
-			String attrName = namespaceAntAttrName;
-			int index = namespaceAntAttrName.indexOf(",");
-			if (index != -1) {
-				String namespaceURI = namespaceAntAttrName.substring(0, index);
-				String prefix = document.getDocumentElement().getPrefix(namespaceURI);
-				attrName = namespaceAntAttrName.substring(index + 1, namespaceAntAttrName.length());
-				if (prefix != null && !prefix.isEmpty()) {
-					attrName = prefix + ":" + attrName;
+			case cvc_complex_type_2_3:
+				return XMLPositionUtility.selectFirstNonWhitespaceText(offset, document);
+			case cvc_complex_type_2_4_a:
+			case cvc_complex_type_2_4_b:
+			case cvc_complex_type_2_4_c:
+			case cvc_complex_type_2_4_d:
+			case cvc_elt_1_a:
+			case cvc_complex_type_4:
+			case TargetNamespace_2:
+				return XMLPositionUtility.selectStartTag(offset, document);
+			case cvc_complex_type_3_2_2: {
+				String attrName = (String) arguments[1];
+				return XMLPositionUtility.selectAttributeNameFromGivenNameAt(attrName, offset, document);
+			}
+			case cvc_elt_3_1: {
+				String namespaceAntAttrName = (String) arguments[1]; // http://www.w3.org/2001/XMLSchema-instance,nil
+				String attrName = namespaceAntAttrName;
+				int index = namespaceAntAttrName.indexOf(",");
+				if (index != -1) {
+					String namespaceURI = namespaceAntAttrName.substring(0, index);
+					String prefix = document.getDocumentElement().getPrefix(namespaceURI);
+					attrName = namespaceAntAttrName.substring(index + 1, namespaceAntAttrName.length());
+					if (prefix != null && !prefix.isEmpty()) {
+						attrName = prefix + ":" + attrName;
+					}
+				}
+				return XMLPositionUtility.selectAttributeFromGivenNameAt(attrName, offset, document);
+			}
+			case cvc_attribute_3:
+			case cvc_complex_type_3_1:
+			case cvc_elt_4_2: {
+				String attrName = (String) arguments[1];
+				return XMLPositionUtility.selectAttributeValueAt(attrName, offset, document);
+			}
+			case cvc_type_3_1_1:
+				return XMLPositionUtility.selectAllAttributes(offset, document);
+			case cvc_complex_type_2_1:
+			case cvc_type_3_1_3:
+			case cvc_elt_3_2_1:
+				return XMLPositionUtility.selectContent(offset, document);
+			case cvc_enumeration_valid:
+			case cvc_datatype_valid_1_2_1:
+			case cvc_maxlength_valid:
+			case cvc_minlength_valid:
+			case cvc_maxExclusive_valid:
+			case cvc_maxInclusive_valid:
+			case cvc_minExclusive_valid:
+			case cvc_minInclusive_valid: {
+				// this error can occur for attribute value or text
+				// Try for attribute value
+				String attrValue = (String) arguments[0];
+				Range range = XMLPositionUtility.selectAttributeValueFromGivenValue(attrValue, offset, document);
+				if (range != null) {
+					return range;
+				} else {
+					// Try with text
+					return XMLPositionUtility.selectContent(offset, document);
 				}
 			}
-			return XMLPositionUtility.selectAttributeFromGivenNameAt(attrName, offset, document);
-		}
-		case cvc_attribute_3:
-		case cvc_complex_type_3_1:
-		case cvc_elt_4_2: {
-			String attrName = (String) arguments[1];
-			return XMLPositionUtility.selectAttributeValueAt(attrName, offset, document);
-		}
-		case cvc_type_3_1_1:
-			return XMLPositionUtility.selectAllAttributes(offset, document);
-		case cvc_complex_type_2_1:
-		case cvc_type_3_1_3:
-			return XMLPositionUtility.selectText(offset, document);
-		case cvc_enumeration_valid:
-		case cvc_datatype_valid_1_2_1:
-		case cvc_maxlength_valid:
-		case cvc_minlength_valid:
-		case cvc_maxExclusive_valid:
-		case cvc_maxInclusive_valid:
-		case cvc_minExclusive_valid:
-		case cvc_minInclusive_valid: {
-			// this error can occur for attribute value or text
-			// Try for attribute value
-			String attrValue = (String) arguments[0];
-			Range range = XMLPositionUtility.selectAttributeValueFromGivenValue(attrValue, offset, document);
-			if (range != null) {
-				return range;
-			} else {
-				// Try with text
-				return XMLPositionUtility.selectText(offset, document);
-			}
-		}
-		default:
+			case cvc_type_3_1_2:
+				return XMLPositionUtility.selectStartTag(offset, document);
+			default:
 		}
 		return null;
 	}

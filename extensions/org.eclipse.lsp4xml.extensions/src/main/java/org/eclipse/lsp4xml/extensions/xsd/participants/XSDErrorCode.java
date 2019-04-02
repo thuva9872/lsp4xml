@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * XSD error code.
  * 
- * @see https://wiki.xmldation.com/Support/Validator
+// * @see https://wiki.xmldation.com/Support/Validator
  *
  */
 public enum XSDErrorCode implements IXMLErrorCode {
@@ -70,9 +70,9 @@ public enum XSDErrorCode implements IXMLErrorCode {
 
 	/**
 	 * Create the LSP range from the SAX error.
-	 * 
-	 * @param characterOffset
-	 * @param key
+	 *
+	 * @param location
+	 * @param code
 	 * @param arguments
 	 * @param document
 	 * @return the LSP range from the SAX error.
@@ -81,23 +81,23 @@ public enum XSDErrorCode implements IXMLErrorCode {
 		int offset = location.getCharacterOffset() - 1;
 		// adjust positions
 		switch (code) {
-		case s4s_elt_invalid_content_1:
-		case s4s_elt_must_match_1:
-		case s4s_att_must_appear:
-		case s4s_elt_invalid_content_2:
-			return XMLPositionUtility.selectStartTag(offset, document);
-		case s4s_att_not_allowed:
-			return XMLPositionUtility.selectAttributeNameAt(offset, document);
-		case s4s_att_invalid_value: {
-			String attrName = "";
-			return XMLPositionUtility.selectAttributeValueAt(attrName, offset, document);
-		}
-		case s4s_elt_character:
-			return XMLPositionUtility.selectText(offset, document);
-		case src_resolve_4_2:
-		case src_resolve:
-			String attrValue = (String) arguments[2];
-			return XMLPositionUtility.selectAttributeValueByGivenValueAt(attrValue, offset, document);
+			case s4s_elt_invalid_content_1:
+			case s4s_elt_must_match_1:
+			case s4s_att_must_appear:
+			case s4s_elt_invalid_content_2:
+				return XMLPositionUtility.selectStartTag(offset, document);
+			case s4s_att_not_allowed:
+				return XMLPositionUtility.selectAttributeNameAt(offset, document);
+			case s4s_att_invalid_value: {
+				String attrName = "";
+				return XMLPositionUtility.selectAttributeValueAt(attrName, offset, document);
+			}
+			case s4s_elt_character:
+				return XMLPositionUtility.selectContent(offset, document);
+			case src_resolve_4_2:
+			case src_resolve:
+				String attrValue = (String) arguments[2];
+				return XMLPositionUtility.selectAttributeValueByGivenValueAt(attrValue, offset, document);
 		}
 		return null;
 	}

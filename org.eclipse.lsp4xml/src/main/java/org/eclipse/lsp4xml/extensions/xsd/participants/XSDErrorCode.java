@@ -71,8 +71,8 @@ public enum XSDErrorCode implements IXMLErrorCode {
 	/**
 	 * Create the LSP range from the SAX error.
 	 * 
-	 * @param characterOffset
-	 * @param key
+	 * @param location
+	 * @param code
 	 * @param arguments
 	 * @param document
 	 * @return the LSP range from the SAX error.

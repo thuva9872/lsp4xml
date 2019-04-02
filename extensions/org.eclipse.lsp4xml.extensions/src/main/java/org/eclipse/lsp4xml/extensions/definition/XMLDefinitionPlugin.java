@@ -8,7 +8,6 @@ import org.eclipse.lsp4xml.services.extensions.IDefinitionParticipant;
 import org.eclipse.lsp4xml.services.extensions.IXMLExtension;
 import org.eclipse.lsp4xml.services.extensions.XMLExtensionsRegistry;
 import org.eclipse.lsp4xml.services.extensions.save.ISaveContext;
-import org.eclipse.lsp4xml.extensions.contentmodel.utils.SynapseWorkspace;
 
 import java.util.List;
 

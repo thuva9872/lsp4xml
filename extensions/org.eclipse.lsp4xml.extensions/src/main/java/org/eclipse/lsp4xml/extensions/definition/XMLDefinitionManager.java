@@ -2,10 +2,8 @@ package org.eclipse.lsp4xml.extensions.definition;
 
 import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.lsp4xml.commons.WorkspaceFolders;
-import org.eclipse.lsp4xml.dom.*;
 import org.eclipse.lsp4xml.extensions.definition.utils.DefinitionSource;
 import org.eclipse.lsp4xml.extensions.definition.utils.WorkspaceDocumentException;
-import org.eclipse.lsp4xml.extensions.contentmodel.utils.SynapseWorkspace;
 import org.w3c.dom.NodeList;
 
 import java.io.IOException;
@@ -13,13 +11,15 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.eclipse.lsp4xml.dom.DOMNode;
+import org.eclipse.lsp4xml.dom.DOMDocument;
+import org.eclipse.lsp4xml.dom.DOMElement;
+import org.eclipse.lsp4xml.dom.DOMAttr;
+import org.eclipse.lsp4xml.dom.DOMParser;
 
 public class XMLDefinitionManager {
     private static final XMLDefinitionManager INSTANCE = new XMLDefinitionManager();
@@ -66,18 +66,25 @@ public class XMLDefinitionManager {
                 if (targetedElement != null) {
                     collector.accept(targetedElement);
                 }else {
-                    List<WorkspaceFolder> workspaceFolderList = WorkspaceFolders.getInstance().getWorkspaceFolders();
+                    Collection<WorkspaceFolder> workspaceFolderList = WorkspaceFolders.getInstance().getWorkspaceFolders();
+
 
                     //assumption: akk opened workspaceFolders are synapse workspaces (i.e: WSO2/EnterpriseIntegrator/6.4.0/repository/deployment/server/synapse-config/default)
                     if (workspaceFolderList.size() > 0) {
-                        for (int i = 0; i < workspaceFolderList.size(); i++) {
-                            WorkspaceFolder workspaceFolder = workspaceFolderList.get(i);
-
+                        for(WorkspaceFolder workspaceFolder: workspaceFolderList) {
                             String uri = workspaceFolder.getUri();
                             String updatedUri = resolveUri(nodeName, uri);
 
                             listAllFiles(updatedUri, nodeName, attrTo, attrValue, collector);
                         }
+//                        for (int i = 0; i < workspaceFolderList.size(); i++) {
+//                            WorkspaceFolder workspaceFolder = workspaceFolderList.
+//
+//                            String uri = workspaceFolder.getUri();
+//                            String updatedUri = resolveUri(nodeName, uri);
+//
+//                            listAllFiles(updatedUri, nodeName, attrTo, attrValue, collector);
+//                        }
                     }
                     if (targetedElement != null) {
                         collector.accept(targetedElement);

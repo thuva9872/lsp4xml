@@ -156,7 +156,7 @@ public class XMLGenerator {
 	}
 
 	private int generate(Collection<CMAttributeDeclaration> attributes, int level, int snippetIndex, XMLBuilder xml,
-			String tagName) {
+						 String tagName) {
 		int attributeIndex = 0;
 		List<CMAttributeDeclaration> requiredAttributes = new ArrayList<CMAttributeDeclaration>();
 		for (CMAttributeDeclaration att : attributes) {
@@ -174,9 +174,9 @@ public class XMLGenerator {
 			String value = generateAttributeValue(defaultValue, enumerationValues, canSupportSnippets, snippetIndex,
 					false);
 			if (attributesSize != 1) {
-				xml.addAttribute(attributeDeclaration.getName(), value, attributeIndex, level, tagName);
+				xml.addAttribute(attributeDeclaration.getName(), value, level, true);
 			} else {
-				xml.addSingleAttribute(attributeDeclaration.getName(), value);
+				xml.addSingleAttribute(attributeDeclaration.getName(), value, true);
 			}
 			attributeIndex++;
 		}

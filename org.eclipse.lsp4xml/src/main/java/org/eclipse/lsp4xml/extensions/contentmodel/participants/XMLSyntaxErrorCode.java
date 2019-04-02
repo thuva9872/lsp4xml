@@ -27,7 +27,7 @@ import org.eclipse.lsp4xml.utils.XMLPositionUtility;
 
 /**
  * XML error code.
- * 
+ *
  * @see https://wiki.xmldation.com/Support/Validator
  *
  */
@@ -82,7 +82,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 
 	/**
 	 * Create the LSP range from the SAX error.
-	 * 
+	 *
 	 * @param location
 	 * @param key
 	 * @param arguments
@@ -129,11 +129,11 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 		case ETagUnterminated:
 			/**
 			 * Cases:
-			 * 
+			 *
 			 * <a> </b>
-			 * 
+			 *
 			 * <a> <b> </b> </c>
-			 * 
+			 *
 			 * <a> <a> </a> </b
 			 */
 			return XMLPositionUtility.selectPreviousNodesEndTag(offset, document);
@@ -185,6 +185,6 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 
 	public static void registerCodeActionParticipants(Map<String, ICodeActionParticipant> codeActions) {
 		codeActions.put(ElementUnterminated.getCode(), new ElementUnterminatedCodeAction());
-		codeActions.put(EqRequiredInAttribute.getCode(), new EqRequiredInAttributeCodeAction());		
+		codeActions.put(EqRequiredInAttribute.getCode(), new EqRequiredInAttributeCodeAction());
 	}
 }
