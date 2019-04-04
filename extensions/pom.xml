@@ -12,6 +12,5 @@
 	<modules>
 		<module>org.eclipse.lsp4xml.extensions.emmet</module>
 		<module>org.eclipse.lsp4xml.extensions.web</module>
-		<module>org.eclipse.lsp4xml.extensions</module>
 	</modules>
 </project>
