@@ -18,7 +18,6 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4xml.utils.SynapseSchemaUtils;
 
 /**
  * Text document extends LSP4j {@link TextDocumentItem} to provide methods to

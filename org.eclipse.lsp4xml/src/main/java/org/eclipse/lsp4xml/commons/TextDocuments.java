@@ -20,7 +20,6 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4xml.utils.SynapseSchemaUtils;
 
 /**
  * A manager for simple text documents
