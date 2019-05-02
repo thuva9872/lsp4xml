@@ -11,6 +11,7 @@
 package org.eclipse.lsp4xml.services;
 
 import static java.lang.Character.isWhitespace;
+import static org.eclipse.lsp4xml.dom.parser.TokenType.AttributeValue;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,7 +44,6 @@ import org.eclipse.lsp4xml.services.extensions.ICompletionRequest;
 import org.eclipse.lsp4xml.services.extensions.ICompletionResponse;
 import org.eclipse.lsp4xml.services.extensions.XMLExtensionsRegistry;
 import org.eclipse.lsp4xml.settings.SharedSettings;
-import org.eclipse.lsp4xml.settings.XMLFormattingOptions;
 import org.eclipse.lsp4xml.utils.StringUtils;
 
 /**
@@ -114,7 +114,7 @@ class XMLCompletions {
 				break;
 			case DelimiterAssign:
 				if (scanner.getTokenEnd() == offset) {
-					int endPos = scanNextForEndPos(offset, scanner, TokenType.AttributeValue);
+					int endPos = scanNextForEndPos(offset, scanner, AttributeValue);
 					collectAttributeValueSuggestions(offset, endPos, completionRequest, completionResponse, settings);
 					return completionResponse;
 				}
@@ -335,8 +335,17 @@ class XMLCompletions {
 		char c = xmlDocument.getText().charAt(offset - 1);
 		char cBefore = xmlDocument.getText().charAt(offset - 2);
 		String snippet = null;
+		DOMNode node = xmlDocument.findNodeBefore(offset);
+
+		// if the current token is an attribute value, then return null
+		if (node != null && isAttributeValue(xmlDocument, node, offset)) {
+			return null;
+		}
+
 		if (c == '>') { // Case: <a>|
-			DOMNode node = xmlDocument.findNodeBefore(offset);
+			if (node != null && node.getNodeType() == 8) {
+				return null;
+			}
 			DOMElement element = ((DOMElement) node);
 			if (node != null 
 					&& node.isElement() 
@@ -350,7 +359,6 @@ class XMLCompletions {
 				
 			}
 		} else if (cBefore == '<' && c == '/') { // Case: <a> </|
-			DOMNode node = xmlDocument.findNodeBefore(offset);
 			while (node != null && node.isClosed()) {
 				node = node.getParentNode();
 			}
@@ -358,14 +366,12 @@ class XMLCompletions {
 				snippet = ((DOMElement) node).getTagName() + ">$0";
 			}
 		} else {
-			DOMNode node = xmlDocument.findNodeBefore(offset);
-			if(node.isElement() && node.getNodeName() != null) {
+			if(node != null && node.isElement() && node.getNodeName() != null) {
 				DOMElement element1 = (DOMElement) node;
 				Integer slashOffset = element1.endsWith('/', offset);
 				Position end = null;
 				if(slashOffset != null) { //The typed characted was '/'
 					Integer closeBracket = element1.isNextChar('>', offset); // After the slash is a close bracket
-					
 					// Case: <a/|
 					if(closeBracket == null) { // no '>' after slash
 						snippet = ">$0";
@@ -419,6 +425,24 @@ class XMLCompletions {
 			return null;
 		}
 		return new AutoCloseTagResponse(snippet);
+	}
+
+	private boolean isAttributeValue(DOMDocument xmlDocument, DOMNode node, int offset) {
+		Scanner scanner = XMLScanner.createScanner(xmlDocument.getText(), node.getStart(), isInsideDTDContent(node, xmlDocument));
+		TokenType token = scanner.scan();
+		while (token != TokenType.EOS && scanner.getTokenOffset() <= offset) {
+			if (token == AttributeValue) {
+				if (scanner.getTokenOffset() <= offset && offset <= scanner.getTokenEnd()) {
+					return true;
+				}
+			} else {
+				if (offset <= scanner.getTokenEnd()) {
+					return false;
+				}
+			}
+			token = scanner.scan();
+		}
+		return false;
 	}
 
 	// ---------------- Tags completion
