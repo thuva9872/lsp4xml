@@ -36,13 +36,14 @@ import org.eclipse.lemminx.customservice.ActionableNotification;
 import org.eclipse.lemminx.customservice.AutoCloseTagResponse;
 import org.eclipse.lemminx.customservice.LogMediatorSnippetRequest;
 import org.eclipse.lemminx.customservice.SnippetCompletionResponse;
+import org.eclipse.lemminx.customservice.SynapseLanguageServerAPI;
 import org.eclipse.lemminx.customservice.XMLLanguageClientAPI;
 import org.eclipse.lemminx.customservice.XMLLanguageServerAPI;
-import org.eclipse.lemminx.customservice.syntaxmodel.SynapseDefinitionProvider;
-import org.eclipse.lemminx.customservice.syntaxmodel.directoryTree.DirectoryMapResponse;
-import org.eclipse.lemminx.customservice.syntaxmodel.directoryTree.DirectoryTreeBuilder;
-import org.eclipse.lemminx.customservice.syntaxmodel.SyntaxTreeGenerator;
-import org.eclipse.lemminx.customservice.syntaxmodel.SyntaxTreeResponse;
+import org.eclipse.lemminx.customservice.synapse.definition.SynapseDefinitionProvider;
+import org.eclipse.lemminx.customservice.synapse.directoryTree.DirectoryMapResponse;
+import org.eclipse.lemminx.customservice.synapse.directoryTree.DirectoryTreeBuilder;
+import org.eclipse.lemminx.customservice.synapse.syntaxTree.SyntaxTreeGenerator;
+import org.eclipse.lemminx.customservice.synapse.syntaxTree.SyntaxTreeResponse;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.extensions.contentmodel.settings.ContentModelSettings;
 import org.eclipse.lemminx.extensions.contentmodel.settings.XMLValidationRootSettings;
@@ -95,7 +96,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
  *
  */
 public class XMLLanguageServer implements ProcessLanguageServer, XMLLanguageServerAPI, IXMLDocumentProvider,
-		IXMLNotificationService, IXMLValidationService {
+		IXMLNotificationService, IXMLValidationService, SynapseLanguageServerAPI {
 
 	private static final Logger LOGGER = Logger.getLogger(XMLLanguageServer.class.getName());
 
